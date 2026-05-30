@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FINAL COUNTDOWN — A9000 terminal</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div class="stage">
+      <div class="bar">
+        <a class="back" href="./index.html">‹ menu</a>
+        <span class="bar-title">A 9000 TERMINAL</span>
+        <label class="deck-pick">
+          DECK
+          <select id="deck">
+            <option value="0">1</option>
+            <option value="1">2</option>
+            <option value="2">3</option>
+            <option value="3">4</option>
+            <option value="4">5</option>
+            <option value="5">6</option>
+            <option value="6">7</option>
+            <option value="7">8</option>
+          </select>
+        </label>
+      </div>
+      <canvas id="screen" width="640" height="192"></canvas>
+      <p class="hint">TYPE A COMMAND · TRY <b>HELP</b> · ENTER TO SEND</p>
+    </div>
+    <script type="module" src="./src/terminal/main.ts"></script>
+  </body>
+</html>
