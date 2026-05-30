@@ -1,0 +1,152 @@
+/* Full-1990-Amiga chrome. Sharp corners, chunky type, Workbench-ish palette.
+   (House aesthetic: period look extends to the UI, not just the canvas.) */
+:root {
+  --bg: #000;
+  --panel: #0a0a3c;
+  --ink: #b9c4ff;
+  --ink-dim: #6a74b8;
+  --accent: #ff8a00;
+  --accent2: #e0e0ff;
+  --line: #2b2f6e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Courier New", ui-monospace, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  -webkit-font-smoothing: none;
+}
+
+img,
+canvas {
+  image-rendering: pixelated;
+}
+
+/* ---- menu ---- */
+.menu {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+}
+.menu .title {
+  font-size: clamp(28px, 7vw, 64px);
+  letter-spacing: 0.18em;
+  margin: 0;
+  color: var(--accent2);
+  text-shadow: 0 2px 0 #1c2bff, 0 4px 0 #000;
+}
+.menu .sub {
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+.menu-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+}
+.btn {
+  display: block;
+  padding: 12px 22px;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-top-color: #3b40a0;
+  border-left-color: #3b40a0;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.btn:hover {
+  background: #14146a;
+  color: var(--accent2);
+  border-color: var(--accent);
+}
+.menu .foot {
+  margin-top: 26px;
+  color: var(--ink-dim);
+  font-size: 11px;
+}
+
+/* ---- stage (intro + terminal) ---- */
+.stage {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+}
+.stage canvas {
+  display: block;
+  width: min(96vw, 960px);
+  height: auto;
+  background: #000;
+  border: 2px solid var(--line);
+  touch-action: manipulation;
+}
+.back {
+  color: var(--ink-dim);
+  text-decoration: none;
+  font-size: 12px;
+}
+.back:hover {
+  color: var(--accent);
+}
+.hint {
+  color: var(--ink-dim);
+  font-size: 11px;
+  margin: 0;
+}
+.hint b {
+  color: var(--accent);
+}
+
+/* terminal top bar */
+.bar {
+  width: min(96vw, 960px);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 10px;
+  background: var(--panel);
+  border: 2px solid var(--line);
+}
+.bar-title {
+  flex: 1;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--accent2);
+}
+.deck-pick {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+.deck-pick select {
+  background: #000;
+  color: var(--ink);
+  border: 2px solid var(--line);
+  font-family: inherit;
+  text-transform: uppercase;
+  padding: 3px 6px;
+  letter-spacing: 0.1em;
+}
