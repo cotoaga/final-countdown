@@ -1,10 +1,12 @@
 // Intro sequence — the original opening, rebuilt on canvas:
 //   demon logo  →  title screen  →  starfield credits (asteroid flyby +
 //   colour-cycled title)  →  story crawl  →  standby.
-// Flow follows title_pic() + title() in reference/src/{start,comp}.c.
+// It AUTOPLAYS on timers (so it plays untouched); fire (space/click) skips to
+// the next phase. Flow follows title_pic() + title() in reference/src.
 import { asset, loadImage } from "../shared/assets";
 import { BitmapFont } from "../shared/font";
 import { startLoop, TICK_HZ } from "../shared/loop";
+import { guard } from "../shared/stage";
 import { STORY } from "./story";
 
 // cyccol[0] from reference/src/main.c — the title colour-cycle set.
@@ -12,6 +14,16 @@ const CYCLE = ["#0066ff", "#0099ff", "#00ccff", "#00ffff"];
 const PHOSPHOR = "#cfe0ff";
 
 type Phase = "logo" | "title" | "credits" | "story" | "standby";
+
+// auto-advance after this many ticks if the player does nothing
+const AUTO: Record<Phase, number> = {
+  logo: Math.round(3.5 * TICK_HZ),
+  title: Math.round(3.5 * TICK_HZ),
+  credits: 24 * TICK_HZ,
+  story: 0, // handled per-line below
+  standby: 0,
+};
+const MIN_SKIP = 6; // ticks before fire is allowed (debounce)
 
 const canvas = document.getElementById("screen") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
@@ -26,16 +38,17 @@ window.addEventListener("keydown", (e) => {
   if (e.key === " " || e.key === "Enter") { e.preventDefault(); fire(); }
 });
 canvas.addEventListener("pointerdown", fire);
+canvas.tabIndex = 0;
 
 const HINTS: Record<Phase, string> = {
-  logo: "CLICK / PRESS FIRE (SPACE)",
-  title: "PRESS FIRE",
-  credits: "PRESS FIRE TO CONTINUE",
-  story: "PRESS FIRE",
+  logo: "PRESS FIRE TO SKIP",
+  title: "PRESS FIRE TO SKIP",
+  credits: "PRESS FIRE TO SKIP",
+  story: "PRESS FIRE TO SKIP",
   standby: "PRESS FIRE — DECK 1 NOT YET BUILT",
 };
 
-async function main() {
+guard(canvas, async () => {
   const [demonlogo, titlescreen, background, asteroid] = await Promise.all([
     loadImage("demonlogo"),
     loadImage("titlescreen"),
@@ -48,9 +61,9 @@ async function main() {
   let phase: Phase = "logo";
   let pt = 0; // ticks since this phase began
   let storyShown = 0; // lines revealed in the crawl
+  let fullAt = -1; // tick when the crawl finished revealing
 
-  const enter = (p: Phase) => { phase = p; pt = 0; hint.textContent = HINTS[p]; };
-  // dev affordance: ?phase=credits|story|... jumps straight to a phase
+  const enter = (p: Phase) => { phase = p; pt = 0; fullAt = -1; hint.textContent = HINTS[p]; };
   const want = new URLSearchParams(location.search).get("phase") as Phase | null;
   const start: Phase = want && want in HINTS ? want : "logo";
   if (start === "story") storyShown = STORY.length;
@@ -58,30 +71,31 @@ async function main() {
 
   const tick = () => {
     pt++;
-    const consumed = fired;
+    const skip = fired && pt > MIN_SKIP;
     fired = false;
 
     switch (phase) {
       case "logo":
-        if (consumed && pt > 8) enter("title");
+        if (skip || pt > AUTO.logo) enter("title");
         break;
       case "title":
-        if (consumed && pt > 8) enter("credits");
+        if (skip || pt > AUTO.title) enter("credits");
         break;
       case "credits":
-        // advance on fire, or auto-advance after ~24s
-        if ((consumed && pt > 8) || pt > 24 * TICK_HZ) enter("story");
+        if (skip || pt > AUTO.credits) enter("story");
         break;
       case "story":
-        if (consumed) {
-          if (storyShown < STORY.length) storyShown = STORY.length; // reveal all
-          else enter("standby");
-        } else if (pt % 9 === 0 && storyShown < STORY.length) {
-          storyShown++;
+        if (storyShown < STORY.length) {
+          if (skip) storyShown = STORY.length;
+          else if (pt % 9 === 0) storyShown++;
+          if (storyShown >= STORY.length) fullAt = pt;
+        } else {
+          if (fullAt < 0) fullAt = pt;
+          if (skip || pt - fullAt > 5 * TICK_HZ) enter("standby");
         }
         break;
       case "standby":
-        if (consumed && pt > 8) window.location.href = "./index.html";
+        if (skip) window.location.href = "./index.html";
         break;
     }
   };
@@ -109,11 +123,9 @@ async function main() {
 
       case "credits": {
         ctx.drawImage(background, 0, 0, W, H);
-        // asteroid drifts left->right across the lower field, wrapping
         const span = W + ast.w;
         const ax = ((pt * 0.6) % span) - ast.w;
         ctx.drawImage(asteroid, Math.round(ax), 150, ast.w, ast.h);
-        // colour-cycled title, centred near the top
         const color = CYCLE[Math.floor(pt / 6) % CYCLE.length];
         const t1 = "FINAL COUNTDOWN";
         font.draw(ctx, t1, Math.round((W - font.measure(t1)) / 2), 28, color);
@@ -124,7 +136,6 @@ async function main() {
       }
 
       case "story": {
-        // A9000-style crawl: revealed lines, top-down
         const x = 20;
         let y = 24;
         for (let i = 0; i < storyShown; i++) {
@@ -146,6 +157,4 @@ async function main() {
   };
 
   startLoop(tick, render);
-}
-
-main();
+});
