@@ -1,0 +1,181 @@
+<div id="fc-wrap">
+  <div id="fc-hud">
+    <span class="lab">FINAL COUNTDOWN</span>
+    <span class="sub">// vertical slice — physics ex move.c (1990)</span>
+    <div id="fuelbox"><span class="lab">FUEL</span><div id="fuelbar"><div id="fuelfill"></div></div></div>
+  </div>
+  <canvas id="fc" width="320" height="180"></canvas>
+  <div id="fc-help">←/→ or A/D &nbsp;move &nbsp;·&nbsp; ↑ / W / SPACE &nbsp;jetpack &nbsp;·&nbsp; grab energy cells to refuel &nbsp;·&nbsp; cross the gap</div>
+</div>
+
+<style>
+  #fc-wrap{font-family:"JetBrains Mono",ui-monospace,monospace;background:#191A2E;color:#e8eaf2;
+    padding:16px;border:1px solid #16213E;display:inline-block;max-width:100%}
+  #fc-hud{display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+  #fc-hud .lab{color:#00D4FF;letter-spacing:.12em;font-weight:700;font-size:13px}
+  #fc-hud .sub{color:#7d86a8;font-size:11px}
+  #fuelbox{display:flex;align-items:center;gap:8px;margin-left:auto}
+  #fuelbar{width:160px;height:12px;background:#0e0f1d;border:1px solid #2a2d4a}
+  #fuelfill{height:100%;width:100%;background:#00A86B;transition:width .05s linear}
+  #fc{display:block;width:960px;max-width:100%;height:auto;image-rendering:pixelated;
+    background:#0b0d1c;border:1px solid #0088FF;touch-action:none}
+  #fc-help{margin-top:10px;color:#9aa3c4;font-size:11px;letter-spacing:.03em}
+</style>
+
+<script>
+(function(){
+  const RUN_B64="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", AIR_B64="iVBORw0KGgoAAAANSUhEUgAAAIAAAAAqBAMAAACJl05wAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAwUExURQAAAAAAALCQANCwINCQcFBQcLBwUPCwkDAwUHBwkJCQsCAgQADw8ACgkADAwABwcDCKAaIAAAABdFJOUwBA5thmAAAAAWJLR0QAiAUdSAAAAAd0SU1FB+oFHgYIFNWjH18AAAAQY2FOdgAAACAAAAAqAAAAAAAAAAD3l2RkAAABg0lEQVRIx+WVzUrDQBSF+woRlWyTILht8gb+lS4FI5PuhBjoVvoCXURS3Bplsrag7gW3PoG4F8EXETMzaXLvkNJ7t5rdl3N65tzJlBkM/v7jbHg2Gv5LQBDglxxWAVtRNIQ6i5uA0DLQWQcc4Y4s1ntwfBiijjWHFg/XsQrYnV35PtA1+xZ7FqMGo5MArUhhHwZkKVqBxKiBkx5EyKEYvlDsYN1DASP1A9iRwB4IcGfjCup9HK7RdcCO3J/ACRTDCTRbOhohT/YWj8DQy16/rgLcMi/zJWhYLuisA8SLFBUwcFiPcPOaiMlb59D8YfF3v66P8lTKu69O1/xj8afF76DB9mV8fnvRGVhsDlKe3gMDi03A9fgBGRhsTuLZNIM6h01AVqEFOKwDiuT5FBo4bI5ytZw7BdgjBjcBTyIp58BA5+bfKGUZi9bAYfMZ47guBDoy2AS4cb0pLthmOjeXaxF3E/J4dTsXwnJQub3ec2wgcxfgWAYitwHCMlB5FeBaDcn8C281UgOn8zJsAAAAAElFTkSuQmCC", ENERGY_B64="iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAzUExURQAAACIiRCIiJCIiBCIipCIixJmZu5mZG5mZWwAA4AAAQAAAwCIiZCIihAAAYJmZO////2fE87oAAAABYktHRBCVsg0sAAAAB3RJTUUH6gUeBggU1aMfXwAAAHBJREFUGNNdj1EOgCAMQzdgKDjk/rd1ZUDUfpD00UBLBDGHGCMz0bIpiUg+zulTYkgk8vJ+48SAncVkJJ/TUxmZetEXWGSDAsQK0F6JP6g33hjEf9HcQVqbPVS9BwhkPnhVoKaaj85r3Vgb9lxPuX0AYLgC0hbuOvUAAAAASUVORK5CYII=", GROUND_B64="iVBORw0KGgoAAAANSUhEUgAAACAAAAAQBAMAAACFLmBqAAAAKlBMVEUAAACqqv93Zt1VRLtEM0QzIjMzIndEZogiETMiEVUzRGYiIkQRACIRESLeDZejAAAAdUlEQVQYlWNgQAdzzjDcuXP37t0zUMBwgJfhwoXdCMBwByi3axUCMPAyHNhVjgQYzt5F4ZczMCCrB2nZs+fMGSCCYwYhY2MjZMxgC3QDMmbI6LjbgYwZTEN7ryJjBhUXjyvIGKgi9AYyBprRcRcZM8wFmoyMAcspifNUDE4ZAAAAAElFTkSuQmCC";
+  const mk=b64=>{const i=new Image();i.src="data:image/png;base64,"+b64;return i;};
+  const runSheet=mk(RUN_B64), airSheet=mk(AIR_B64), energyImg=mk(ENERGY_B64), groundImg=mk(GROUND_B64);
+
+  const cv=document.getElementById("fc"), ctx=cv.getContext("2d");
+  ctx.imageSmoothingEnabled=false;
+  const W=320,H=180, FW=32, FH=42, RUN_FRAMES=16, AIR_FRAMES=4;
+
+  // ---- physics, faithful to move.c ----
+  // xp in 1/32px units, yp in 1/64px units. velx clamp +-32, vely clamp +-64.
+  // thrust: vely-=1 (& burn fuel). gravity: vely+=1. friction on velx by 1.
+  const XSCALE=32, YSCALE=64, VX_MAX=32, VY_MAX=64, GRAV=1, THRUST=1, FRIC=1, FUEL_BURN=1;
+  const GROUND_Y=150;                       // floor top, screen px
+  const GAP_X0=150, GAP_X1=214;             // a gap in the floor to cross via jetpack
+  const FUEL_MAX=240;
+
+  let st;
+  function reset(){
+    st={ xp:40*XSCALE, yp:(GROUND_Y-FH)*YSCALE, velx:0, vely:0,
+         face:1, onground:true, anim:0, fuel:FUEL_MAX, thrusting:false,
+         cells:[{x:120,y:120,got:false},{x:250,y:96,got:false},{x:300,y:60,got:false}] };
+  }
+  reset();
+
+  const keys={};
+  const DOWN=e=>{const k=e.key.toLowerCase();
+    if(["arrowleft","arrowright","arrowup","a","d","w"," "].includes(k)){keys[k]=true;e.preventDefault();}
+    if(k==="r")reset();};
+  const UP=e=>{keys[e.key.toLowerCase()]=false;};
+  window.addEventListener("keydown",DOWN); window.addEventListener("keyup",UP);
+  cv.setAttribute("tabindex","0"); cv.addEventListener("click",()=>cv.focus());
+
+  function screenX(){return Math.round(st.xp/XSCALE);}
+  function screenY(){return Math.round(st.yp/YSCALE);}
+
+  function step(){
+    // ---- input -> joy ----
+    let joyx=0, joyy=0;
+    if(keys["arrowleft"]||keys["a"]) joyx=-1;
+    if(keys["arrowright"]||keys["d"]) joyx=1;
+    const wantThrust = keys["arrowup"]||keys["w"]||keys[" "];
+    if(wantThrust) joyy=-1;
+    if(joyx) st.face=joyx;
+
+    // ---- grav_sim ----
+    st.thrusting=false;
+    if(joyy<0 && st.fuel>0){
+      st.vely-=THRUST; st.thrusting=true;
+      st.fuel-=FUEL_BURN; if(st.fuel<0)st.fuel=0;
+    } else {
+      if(st.vely<VY_MAX) st.vely+=GRAV;
+    }
+    if(st.vely>VY_MAX)st.vely=VY_MAX; else if(st.vely<-VY_MAX)st.vely=-VY_MAX;
+
+    // ---- add_x (accel + friction + clamp) ----
+    st.velx+=joyx;
+    if(!joyx){ if(st.velx>0)st.velx-=FRIC; else if(st.velx<0)st.velx+=FRIC; }
+    else { if(st.velx>0&&joyx<0)st.velx-=FRIC; else if(st.velx<0&&joyx>0)st.velx+=FRIC; }
+    if(st.velx<-VX_MAX)st.velx=-VX_MAX; else if(st.velx>VX_MAX)st.velx=VX_MAX;
+
+    // ---- apply X with wall bounds ----
+    st.xp+=st.velx;
+    const minX=0*XSCALE, maxX=(W-FW)*XSCALE;
+    if(st.xp<minX){st.xp=minX;st.velx=0;} if(st.xp>maxX){st.xp=maxX;st.velx=0;}
+
+    // ---- apply Y ----
+    st.yp+=st.vely;
+    // ceiling
+    if(st.yp<0){st.yp=0;st.vely=0;}
+
+    // ---- ground / gap collision (check_ground analogue) ----
+    const sx=screenX(), feetY=screenY()+FH, cx=sx+FW/2;
+    const overGap = cx>GAP_X0 && cx<GAP_X1;
+    st.onground=false;
+    if(!overGap && st.vely>=0 && feetY>=GROUND_Y){
+      st.yp=(GROUND_Y-FH)*YSCALE; st.vely=0; st.onground=true;
+    }
+    // fell through the gap -> respawn (collision==2 analogue, soft)
+    if(screenY()>H+10) reset();
+
+    // ---- energy cells ----
+    for(const c of st.cells){ if(c.got)continue;
+      if(sx< c.x+16 && sx+FW>c.x && screenY()<c.y+16 && screenY()+FH>c.y){
+        c.got=true; st.fuel=Math.min(FUEL_MAX, st.fuel+90);
+      }
+    }
+
+    // ---- animation ----
+    if(st.onground){
+      if(Math.abs(st.velx)>1){ st.anim=(st.anim+Math.abs(st.velx)/14)% RUN_FRAMES; }
+      else st.anim=0;
+    } else {
+      st.anim=(st.anim+0.25)%AIR_FRAMES;
+    }
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // starfield-ish deep space wash
+    ctx.fillStyle="#0b0d1c"; ctx.fillRect(0,0,W,H);
+    // floor (tiled), with the gap
+    if(groundImg.complete){
+      for(let x=0;x<W;x+=32){
+        const cx=x+16;
+        if(cx>GAP_X0 && cx<GAP_X1) continue;
+        for(let y=GROUND_Y;y<H;y+=16) ctx.drawImage(groundImg,x,y);
+      }
+    } else { ctx.fillStyle="#2a2d4a"; ctx.fillRect(0,GROUND_Y,W,H-GROUND_Y); }
+    // gap edge glow
+    ctx.fillStyle="#0088FF22"; ctx.fillRect(GAP_X0,GROUND_Y,GAP_X1-GAP_X0,H-GROUND_Y);
+
+    // energy cells
+    for(const c of st.cells){ if(c.got)continue;
+      if(energyImg.complete) ctx.drawImage(energyImg,c.x,c.y+(Math.sin(Date.now()/200+c.x)*2));
+      else {ctx.fillStyle="#00D4FF";ctx.fillRect(c.x,c.y,16,16);}
+    }
+
+    // Laira
+    const sx=screenX(), sy=screenY();
+    const sheet = st.onground ? runSheet : airSheet;
+    const frames = st.onground ? RUN_FRAMES : AIR_FRAMES;
+    const fi = Math.floor(st.anim)%frames;
+    ctx.save();
+    if(st.face<0){ ctx.translate(sx+FW,0); ctx.scale(-1,1); ctx.translate(-sx,0); }
+    if(sheet.complete) ctx.drawImage(sheet, fi*FW,0,FW,FH, sx,sy,FW,FH);
+    else {ctx.fillStyle="#cfa";ctx.fillRect(sx,sy,FW,FH);}
+    ctx.restore();
+
+    // thrust flame
+    if(st.thrusting){
+      ctx.fillStyle="#00D4FF";
+      const fx=sx+FW/2, fy=sy+FH;
+      ctx.beginPath();ctx.moveTo(fx-4,fy);ctx.lineTo(fx+4,fy);ctx.lineTo(fx,fy+6+Math.random()*5);ctx.closePath();ctx.fill();
+    }
+
+    // fuel HUD bar
+    const ff=document.getElementById("fuelfill");
+    const pct=st.fuel/FUEL_MAX;
+    ff.style.width=(pct*100)+"%";
+    ff.style.background = pct>0.4? "#00A86B" : pct>0.18? "#d8a200" : "#d23b3b";
+  }
+
+  let acc=0,last=performance.now();
+  const TICK=1000/50; // original PAL 50Hz feel
+  function loop(t){
+    acc+=t-last; last=t;
+    let guard=0;
+    while(acc>=TICK && guard<6){ step(); acc-=TICK; guard++; }
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+  setTimeout(()=>cv.focus(),100);
+})();
+</script>
