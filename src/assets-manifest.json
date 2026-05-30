@@ -1,0 +1,55 @@
+{
+  "assets": {
+    "asteroid": {
+      "file": "assets/asteroid.png",
+      "w": 130,
+      "h": 102
+    },
+    "background": {
+      "file": "assets/background.png",
+      "w": 320,
+      "h": 256
+    },
+    "computer": {
+      "file": "assets/computer.png",
+      "w": 640,
+      "h": 192,
+      "screen": {
+        "x": 88,
+        "y": 10,
+        "w": 358,
+        "h": 102
+      }
+    },
+    "computer-tercom": {
+      "file": "assets/computer-tercom.png",
+      "w": 640,
+      "h": 192,
+      "screen": {
+        "x": 87,
+        "y": 11,
+        "w": 356,
+        "h": 100
+      }
+    },
+    "demonlogo": {
+      "file": "assets/demonlogo.png",
+      "w": 320,
+      "h": 256
+    },
+    "font": {
+      "file": "assets/font.png",
+      "w": 480,
+      "h": 8,
+      "font": {
+        "cellW": 8,
+        "cellH": 8
+      }
+    },
+    "titlescreen": {
+      "file": "assets/titlescreen.png",
+      "w": 320,
+      "h": 256
+    }
+  }
+}
