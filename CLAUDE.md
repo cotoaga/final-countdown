@@ -14,6 +14,12 @@ a playable Deck-1 floor with the original jetpack/fuel physics.
 - `reference/move-physics.md` — extracted physics constants (the short version of move.c).
 - `assets/raw/` — **source art, IFF ILBM format**. `girl/`, `foes-deck1/`, `pics/`, `obj/`,
   `deck1/`, `blueprints/`. These are the inputs to the asset pipeline. NEVER hand-edit them.
+- `assets/raw/lev/` — **original binary level data** (Struct0–7, Matrix0–7, Elements0–3, Foes0–3),
+  recovered from the release Disk 2. Decode via readers in `reference/src/` (`matrix [15][128]` in
+  main.c is the Matrix* shape hint — cross-check, don't guess). Read-only originals.
+- `assets/raw/txt/` — original in-game text + Pic files from both release disks (disk1/, disk2/).
+  German is canon; translation is a rendering concern. `src/intro/story.ts` carries verbatim MSGA.
+  Provenance: `assets/raw/RECOVERED.md`.
 - `spike/final_countdown_slice.html` — a disposable feel-reference spike (KHAOS, validated by
   Kurt as "feels like Laira Tyrik"). **Do not port verbatim.** It proves the feel; rebuild clean.
 
