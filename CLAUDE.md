@@ -12,14 +12,23 @@ a playable Deck-1 floor with the original jetpack/fuel physics.
 - `reference/src/` — the **original C + 68000 source**. `move.c` is the physics ground truth.
   Read it; do not re-invent behaviour you can read here. `foes.c` = robot AI for later decks.
 - `reference/move-physics.md` — extracted physics constants (the short version of move.c).
-- `assets/raw/` — **source art, IFF ILBM format**. `girl/`, `foes-deck1/`, `pics/`, `obj/`,
-  `deck1/`, `blueprints/`. These are the inputs to the asset pipeline. NEVER hand-edit them.
+- `assets/raw/` — **source art, IFF ILBM format**. `girl/`, `pics/`, `obj/`, `blueprints/`;
+  per-deck tiles+entities in `deck1/ deck2/ deck5/ deck8/` (base+elem pairs); foes in
+  `foes-deck1/ foes-deck5-7/ foes-deck8/`; `gfxdev/` = the original GFX dev tree (chars, objects,
+  elem0/1/4/7, square). Inputs to the asset pipeline. NEVER hand-edit them.
+- `assets/raw/audio/` — original sound data (`Sound`, `SSound`, `title` song) and
+  `assets/raw/gfx-release/` — shipped-disk gfx (`Kredits`, `Stuff`, `Syscompc`). **Archival:
+  COT-55 via negativa still holds — no sound in this slice.**
 - `assets/raw/lev/` — **original binary level data** (Struct0–7, Matrix0–7, Elements0–3, Foes0–3),
   recovered from the release Disk 2. Decode via readers in `reference/src/` (`matrix [15][128]` in
   main.c is the Matrix* shape hint — cross-check, don't guess). Read-only originals.
 - `assets/raw/txt/` — original in-game text + Pic files from both release disks (disk1/, disk2/).
   German is canon; translation is a rendering concern. `src/intro/story.ts` carries verbatim MSGA.
   Provenance: `assets/raw/RECOVERED.md`.
+- `reference/adf/` — the four bootable disk images (original, PDX crack, trainer). Ground truth:
+  boot in FS-UAE/vAmiga to compare any rebuild against the shipped game.
+- `reference/edit-src/` — the original level-editor (`edit/`), text-writer (`write/`) and sector
+  tools (`sec/`) source. Study only — do NOT build an editor (via negativa below).
 - `spike/final_countdown_slice.html` — a disposable feel-reference spike (KHAOS, validated by
   Kurt as "feels like Laira Tyrik"). **Do not port verbatim.** It proves the feel; rebuild clean.
 
