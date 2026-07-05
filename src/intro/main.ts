@@ -9,8 +9,37 @@ import { startLoop, TICK_HZ } from "../shared/loop";
 import { guard } from "../shared/stage";
 import { STORY } from "./story";
 
-// cyccol[0] from reference/src/main.c — the title colour-cycle set.
-const CYCLE = ["#0066ff", "#0099ff", "#00ccff", "#00ffff"];
+// cyccol[0] VERBATIM from reference/src/main.c:47 — Amiga 12-bit, 4 rotation
+// rows. (The previous four hex strings here were an invented approximation
+// and a nibble-mistranslation: 0x066 is teal #006666, not blue #0066ff.)
+const CYCCOL0 = [
+  [0x066, 0x099, 0x0cc, 0x0ff],
+  [0x099, 0x0cc, 0x0ff, 0x066],
+  [0x0cc, 0x0ff, 0x066, 0x099],
+  [0x0ff, 0x066, 0x099, 0x0cc],
+];
+const amigaRgb = (c: number): [number, number, number] => [
+  ((c >> 8) & 15) * 17,
+  ((c >> 4) & 15) * 17,
+  (c & 15) * 17,
+];
+const amigaCss = (c: number): string => {
+  const [r, g, b] = amigaRgb(c);
+  return `rgb(${r},${g},${b})`;
+};
+
+// Title-screen asteroid effect, start.c:1250-1273 — asteroid blits into the
+// window l ∈ (OFFSET, OFFSET+896] at x = ticks/2, y = 80, sweeping in DARK;
+// then three register groups ignite in waves at three tempos. l is a 50 Hz
+// VBL counter and our loop is 50 Hz fixed-step, so timings port 1:1.
+const OFFSET = 1200;
+const SWEEP_TICKS = 896;
+const ASTEROID_Y = 80;
+const IGNITION = [
+  { at: 400, regs: [5, 6, 7, 17], shift: 3 },
+  { at: 450, regs: [1, 2, 3, 4], shift: 4 },
+  { at: 500, regs: [18, 29, 30, 31], shift: 2 },
+];
 const PHOSPHOR = "#cfe0ff";
 
 type Phase = "logo" | "title" | "credits" | "story" | "standby";
@@ -40,6 +69,73 @@ window.addEventListener("keydown", (e) => {
 canvas.addEventListener("pointerdown", fire);
 canvas.tabIndex = 0;
 
+// Palette-indexed sprite: pixels mapped to CMAP indices once at load, so we
+// can do the two things baked-RGB PNGs cannot — Amiga register cycling and
+// index-0 transparency (index 0 is transparent; "black" is irrelevant).
+interface IndexedSprite {
+  w: number;
+  h: number;
+  idx: Uint8Array;
+  base: number[][];
+  canvas: HTMLCanvasElement;
+  image: ImageData;
+}
+
+function indexSprite(img: HTMLImageElement, palette: number[][]): IndexedSprite {
+  const w = img.naturalWidth;
+  const h = img.naturalHeight;
+  const cv = document.createElement("canvas");
+  cv.width = w;
+  cv.height = h;
+  const c2 = cv.getContext("2d")!;
+  c2.drawImage(img, 0, 0);
+  const src = c2.getImageData(0, 0, w, h);
+  const idx = new Uint8Array(w * h);
+  const memo = new Map<number, number>();
+  for (let p = 0; p < w * h; p++) {
+    const r = src.data[p * 4];
+    const g = src.data[p * 4 + 1];
+    const b = src.data[p * 4 + 2];
+    const key = (r << 16) | (g << 8) | b;
+    let best = memo.get(key);
+    if (best === undefined) {
+      // Nearest match absorbs ilbmtoppm's -adjustcolors rescaling.
+      let bd = Infinity;
+      best = 0;
+      for (let i = 0; i < palette.length; i++) {
+        const dr = r - palette[i][0];
+        const dg = g - palette[i][1];
+        const db = b - palette[i][2];
+        const d = dr * dr + dg * dg + db * db;
+        if (d < bd) {
+          bd = d;
+          best = i;
+        }
+      }
+      memo.set(key, best);
+    }
+    idx[p] = best;
+  }
+  return { w, h, idx, base: palette, canvas: cv, image: c2.createImageData(w, h) };
+}
+
+function paintSprite(s: IndexedSprite, overrides: ([number, number, number] | null)[]): void {
+  const d = s.image.data;
+  for (let p = 0; p < s.idx.length; p++) {
+    const i = s.idx[p];
+    if (i === 0) {
+      d[p * 4 + 3] = 0; // Amiga transparency: palette index 0
+      continue;
+    }
+    const rgb = overrides[i] ?? s.base[i];
+    d[p * 4] = rgb[0];
+    d[p * 4 + 1] = rgb[1];
+    d[p * 4 + 2] = rgb[2];
+    d[p * 4 + 3] = 255;
+  }
+  s.canvas.getContext("2d")!.putImageData(s.image, 0, 0);
+}
+
 const HINTS: Record<Phase, string> = {
   logo: "PRESS FIRE TO SKIP",
   title: "PRESS FIRE TO SKIP",
@@ -56,6 +152,10 @@ guard(canvas, async () => {
     loadImage("asteroid"),
   ]);
   const ast = asset("asteroid");
+  if (!ast.palette) throw new Error("asteroid asset has no palette — rerun npm run assets");
+  const sprite = indexSprite(asteroid, ast.palette);
+  let cycleSig = "";
+  paintSprite(sprite, new Array(ast.palette.length).fill(null)); // dark sweep state
   const font = await BitmapFont.load();
 
   let phase: Phase = "logo";
@@ -123,10 +223,28 @@ guard(canvas, async () => {
 
       case "credits": {
         ctx.drawImage(background, 0, 0, W, H);
-        const span = W + ast.w;
-        const ax = ((pt * 0.6) % span) - ast.w;
-        ctx.drawImage(asteroid, Math.round(ax), 150, ast.w, ast.h);
-        const color = CYCLE[Math.floor(pt / 6) % CYCLE.length];
+        // start.c: l = OFFSET + ticks-in-window; x advances 1px per 2 ticks.
+        const l = OFFSET + pt;
+        if (pt > 0 && pt <= SWEEP_TICKS) {
+          const overrides: ([number, number, number] | null)[] = new Array(
+            sprite.base.length,
+          ).fill(null);
+          for (const g of IGNITION) {
+            if (pt >= g.at) {
+              const row = CYCCOL0[(l >> g.shift) & 3];
+              g.regs.forEach((reg, k) => {
+                if (reg < overrides.length) overrides[reg] = amigaRgb(row[k]);
+              });
+            }
+          }
+          const sig = overrides.map((o) => (o ? o.join() : "-")).join("|");
+          if (sig !== cycleSig) {
+            paintSprite(sprite, overrides);
+            cycleSig = sig;
+          }
+          ctx.drawImage(sprite.canvas, Math.floor(pt / 2), ASTEROID_Y);
+        }
+        const color = amigaCss(CYCCOL0[(l >> 3) & 3][0]);
         const t1 = "FINAL COUNTDOWN";
         font.draw(ctx, t1, Math.round((W - font.measure(t1)) / 2), 28, color);
         const t2 = "DEMONWARE  1990";
@@ -136,14 +254,21 @@ guard(canvas, async () => {
       }
 
       case "story": {
+        // Crawl, not stack: once the text would run past the bottom, older
+        // lines scroll off the top. (The original presented this as a crawl;
+        // stacking clipped the tail of the MSGA text below the canvas.)
         const x = 20;
-        let y = 24;
+        const lineH = 10;
+        const top = 24;
+        const bottom = H - 30;
+        const scroll = Math.max(0, top + storyShown * lineH - bottom);
+        let y = top - scroll;
         for (let i = 0; i < storyShown; i++) {
-          font.draw(ctx, STORY[i], x, y, PHOSPHOR);
-          y += 10;
+          if (y > -lineH && y < H) font.draw(ctx, STORY[i], x, y, PHOSPHOR);
+          y += lineH;
         }
         if (storyShown >= STORY.length && Math.floor(pt / 25) % 2 === 0) {
-          font.draw(ctx, "PRESS FIRE", x, y + 6, CYCLE[2]);
+          font.draw(ctx, "PRESS FIRE", x, Math.min(y + 6, H - 14), amigaCss(0x0cc));
         }
         break;
       }

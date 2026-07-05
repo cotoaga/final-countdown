@@ -20,7 +20,7 @@ const ASSETS = [
   { name: "demonlogo", raw: "pics/demonlogo" },
   { name: "titlescreen", raw: "pics/Titelscreen" },
   { name: "background", raw: "pics/Background" },
-  { name: "asteroid", raw: "pics/Asteroid" },
+  { name: "asteroid", raw: "pics/Asteroid", palette: true },
   { name: "computer", raw: "pics/Computer", screen: true },
   { name: "computer-tercom", raw: "pics/ComputerTercom", screen: true },
   { name: "font", raw: "obj/font", font: { cellW: 8, cellH: 8 } },
@@ -31,6 +31,28 @@ const ASSETS = [
   { name: "girl-air-r", frames: { dir: "girl", prefix: "e", count: 4 } },
   { name: "girl-air-l", frames: { dir: "girl", prefix: "f", count: 4 } },
 ];
+
+// Extract the ILBM CMAP chunk (raw palette triplets, 8-bit as stored).
+// Needed where runtime rendering is palette-indexed: Amiga colour cycling
+// and index-0 transparency (transparency is INDEX 0, not "black").
+function parseCMAP(path) {
+  const buf = readFileSync(path);
+  if (buf.toString("ascii", 0, 4) !== "FORM") throw new Error(`${path}: not IFF`);
+  let i = 12;
+  while (i + 8 <= buf.length) {
+    const id = buf.toString("ascii", i, i + 4);
+    const len = buf.readUInt32BE(i + 4);
+    if (id === "CMAP") {
+      const colors = [];
+      for (let c = 0; c < Math.floor(len / 3); c++) {
+        colors.push([buf[i + 8 + c * 3], buf[i + 8 + c * 3 + 1], buf[i + 8 + c * 3 + 2]]);
+      }
+      return colors;
+    }
+    i += 8 + len + (len & 1); // chunks are word-aligned
+  }
+  throw new Error(`${path}: no CMAP chunk`);
+}
 
 function run(cmd, args, input) {
   const r = spawnSync(cmd, args, { input, maxBuffer: 256 * 1024 * 1024 });
@@ -152,6 +174,7 @@ for (const a of ASSETS) {
     entry.screen = s;
   }
   if (a.font) entry.font = a.font;
+  if (a.palette) entry.palette = parseCMAP(resolve(RAW, a.raw));
   if (a.frames) entry.frames = { w: composed.frameW, h: composed.frameH, count: a.frames.count };
   manifest.assets[a.name] = entry;
   console.log(

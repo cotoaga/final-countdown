@@ -16,6 +16,8 @@ export interface AssetEntry {
   screen?: Rect;
   font?: { cellW: number; cellH: number };
   frames?: { w: number; h: number; count: number };
+  /** ILBM CMAP triplets (8-bit RGB) for palette-indexed runtime rendering. */
+  palette?: number[][];
 }
 
 export interface Manifest {
