@@ -37,6 +37,11 @@
       "w": 320,
       "h": 256
     },
+    "energy": {
+      "file": "assets/energy.png",
+      "w": 16,
+      "h": 16
+    },
     "font": {
       "file": "assets/font.png",
       "w": 480,
@@ -44,6 +49,46 @@
       "font": {
         "cellW": 8,
         "cellH": 8
+      }
+    },
+    "girl-air-l": {
+      "file": "assets/girl-air-l.png",
+      "w": 128,
+      "h": 39,
+      "frames": {
+        "w": 32,
+        "h": 39,
+        "count": 4
+      }
+    },
+    "girl-air-r": {
+      "file": "assets/girl-air-r.png",
+      "w": 128,
+      "h": 39,
+      "frames": {
+        "w": 32,
+        "h": 39,
+        "count": 4
+      }
+    },
+    "girl-walk-l": {
+      "file": "assets/girl-walk-l.png",
+      "w": 512,
+      "h": 42,
+      "frames": {
+        "w": 32,
+        "h": 42,
+        "count": 16
+      }
+    },
+    "girl-walk-r": {
+      "file": "assets/girl-walk-r.png",
+      "w": 512,
+      "h": 42,
+      "frames": {
+        "w": 32,
+        "h": 42,
+        "count": 16
       }
     },
     "titlescreen": {

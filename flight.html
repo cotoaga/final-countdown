@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FINAL COUNTDOWN — flight lab</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div class="stage">
+      <div class="bar">
+        <a class="back" href="./index.html">‹ menu</a>
+        <span class="bar-title">FLIGHT LAB · DESIGNER</span>
+        <button id="refuel" class="btn-mini" type="button">REFILL FUEL (R)</button>
+      </div>
+      <canvas id="screen" width="320" height="200"></canvas>
+      <p class="hint">ARROWS/A·D MOVE · SPACE/UP THRUST · R REFILL FUEL</p>
+      <div class="flight-panel">
+        <label>THRUST<input id="thrust" type="range" min="0" max="4" step="1" value="1" /><output id="thrust-v"></output></label>
+        <label>GRAVITY<input id="gravity" type="range" min="0" max="4" step="1" value="1" /><output id="gravity-v"></output></label>
+        <label>FRICTION<input id="friction" type="range" min="0" max="4" step="1" value="1" /><output id="friction-v"></output></label>
+        <label>VELX CLAMP<input id="velx-clamp" type="range" min="8" max="64" step="4" value="32" /><output id="velx-clamp-v"></output></label>
+        <label>VELY CLAMP<input id="vely-clamp" type="range" min="8" max="96" step="4" value="64" /><output id="vely-clamp-v"></output></label>
+        <button id="reset1990" class="btn-mini" type="button">1990 RESET</button>
+      </div>
+    </div>
+    <script type="module" src="./src/designer/flight/main.ts"></script>
+  </body>
+</html>

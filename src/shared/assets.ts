@@ -15,6 +15,7 @@ export interface AssetEntry {
   h: number;
   screen?: Rect;
   font?: { cellW: number; cellH: number };
+  frames?: { w: number; h: number; count: number };
 }
 
 export interface Manifest {
