@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FINAL COUNTDOWN — deck viewer</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div class="stage stage-wide">
+      <div class="bar">
+        <a class="back" href="./index.html">‹ menu</a>
+        <span class="bar-title">DECK VIEWER · DESIGNER TOOL</span>
+        <label class="deck-pick">
+          LEVEL
+          <select id="deck">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+          </select>
+        </label>
+      </div>
+      <div class="deck-scroll">
+        <canvas id="deck-canvas" width="2048" height="192"></canvas>
+      </div>
+      <p class="hint" id="readout">HOVER THE DECK · CLICK A TERMINAL FOR ITS FILES</p>
+      <p class="hint legend">
+        <b>■</b> TILE (FALSE-COLOR BY ID) · <b>C</b> TERMINAL · <b>D</b> DEVICE (GREEN=ON) ·
+        <b>E</b> EXIT · <b>▬</b> FOE PATROL ZONE
+      </p>
+    </div>
+    <script type="module" src="./src/designer/decks/main.ts"></script>
+  </body>
+</html>

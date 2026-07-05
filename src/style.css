@@ -150,3 +150,24 @@ canvas {
   padding: 3px 6px;
   letter-spacing: 0.1em;
 }
+
+/* ---- deck viewer (designer tool) ---- */
+.stage-wide {
+  max-width: 96vw;
+}
+.deck-scroll {
+  overflow-x: auto;
+  border: 2px solid var(--line);
+  background: #000;
+}
+.deck-scroll canvas {
+  display: block;
+  width: 4096px; /* 2x chunky pixels, horizontal scroll */
+  height: 384px;
+}
+.hint.legend {
+  color: var(--ink-dim);
+}
+.hint.legend b {
+  color: var(--accent);
+}

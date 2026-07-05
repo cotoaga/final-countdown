@@ -13,6 +13,7 @@ export default defineConfig({
         menu: resolve(here, "index.html"),
         intro: resolve(here, "intro.html"),
         terminal: resolve(here, "terminal.html"),
+        decks: resolve(here, "decks.html"),
       },
     },
   },
