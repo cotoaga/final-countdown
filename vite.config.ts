@@ -14,6 +14,7 @@ export default defineConfig({
         intro: resolve(here, "intro.html"),
         terminal: resolve(here, "terminal.html"),
         decks: resolve(here, "decks.html"),
+        flight: resolve(here, "flight.html"),
       },
     },
   },
