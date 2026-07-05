@@ -25,11 +25,14 @@ const ASSETS = [
   { name: "computer-tercom", raw: "pics/ComputerTercom", screen: true },
   { name: "font", raw: "obj/font", font: { cellW: 8, cellH: 8 } },
   { name: "energy", raw: "obj/energy" },
-  // Laira walk/air banks (reference/move-physics.md: girlgr/gl -> a/b, girlar/al -> e/f).
-  { name: "girl-walk-r", frames: { dir: "girl", prefix: "a", count: 16 } },
-  { name: "girl-walk-l", frames: { dir: "girl", prefix: "b", count: 16 } },
-  { name: "girl-air-r", frames: { dir: "girl", prefix: "e", count: 4 } },
-  { name: "girl-air-l", frames: { dir: "girl", prefix: "f", count: 4 } },
+  // Laira walk/air banks. Direction mapping CORRECTED 2026-07-05: the raw `a`
+  // frames face LEFT (designer-verified on screen against move.c's velx>0 →
+  // girlgr logic — the old a→right assignment in move-physics.md was an
+  // alphabetical guess). a→left, b→right; e→left, f→right.
+  { name: "girl-walk-r", frames: { dir: "girl", prefix: "b", count: 16 } },
+  { name: "girl-walk-l", frames: { dir: "girl", prefix: "a", count: 16 } },
+  { name: "girl-air-r", frames: { dir: "girl", prefix: "f", count: 4 } },
+  { name: "girl-air-l", frames: { dir: "girl", prefix: "e", count: 4 } },
 ];
 
 // Extract the ILBM CMAP chunk (raw palette triplets, 8-bit as stored).

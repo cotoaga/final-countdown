@@ -47,9 +47,18 @@ asymmetric in raw units. Play area height ≈ 180 px (`yp` max = 180*64).
 1 unit burned per thrust-frame. Energy cells (`assets/raw/obj/energy`) refill. Tune refill amount
 to taste; original gameplay rewards careful, intermittent thrust.
 
-## Animation banks (from move.c externs)
-- `girlgr[16]` / `girlgl[16]` — walk right/left → raw groups `a` / `b`
-- `girlar[4]`  / `girlal[4]`  — air (jetpack) right/left → raw groups `e` / `f`
-- `girlgsr/gsl[8]`, `girlasr/asl[8]` — ground/air + shoot (later)
-- `girld[4]` — death (`d.*`), `girltr[8]` — teleport, `girle[21]` — entry
+## Animation banks (from move.c externs + set_bob state machine, verified 2026-07-05)
+- `girlgr[16]` / `girlgl[16]` — walk right/left → raw groups `b` / `a`
+  (CORRECTED: `a` faces LEFT — the original a→right mapping here was an
+  alphabetical guess, falsified on screen by the designer)
+- `girlar[4]` / `girlal[4]` — air (jetpack) right/left → raw groups `f` / `e` (same correction)
+- `girlgsr/gsl[8]` — ground START/STOP right/left (SMSTARTR/L, SMSTOPR/L — not "shoot")
+- `girlasr/asl[8]` — air start/end right/left (SMSAIRR/L, SMEAIRR/L)
+- `girltr[8]` — rotate-toward-camera bank, reused for THREE contexts:
+  turn-around (SMTURNS/SMTURNE), hide/enter (SMHIDEB/E), lift ride (SMLIFTUP/DN,
+  frame 7 held while moving)
+- `girld[4]` — take/up/down poses (SMTAKEU/D, SMUP, SMDOWN — not death) → raw `d.` group
+- `girle[21]` — die AND appear (SMDIE, SMAPP; girlshp caps at 81 → 21 frames @ >>2) → raw `j` group
+- Raw group `g` (16 frames) and one 8-frame group are currently unclaimed by any
+  bank mapping — flagged, unverified, do not guess.
 Frame dims: girl ~32×42, bottom-align on the feet baseline.
