@@ -45,6 +45,11 @@ committed if convenient, but always reproducible from `assets/raw/`. Re-running 
 - Unrelated issues → Linear comment, not this PR.
 - Line budgets in the directive are real. Exceed = justify in the PR.
 - Physics constants traceable to `move.c`. No magic numbers scattered in the loop — one named module.
+- **All 1990-derived constants are quoted, never invented: cite `file:line` from
+  `reference/src` in a comment, value VERBATIM. A comment claiming source fidelity
+  over an approximated value is worse than no comment — it poisons the archaeology.
+  (Lesson: intro `cyccol` shipped invented-and-nibble-mistranslated colours under a
+  "from main.c" comment; caught by the designer's eyes, 2026-07-05.)**
 
 ## Via negativa (do NOT)
 - Do NOT reimplement the 68k decompressor. Assets are plain ILBM; there is nothing to decompress.
