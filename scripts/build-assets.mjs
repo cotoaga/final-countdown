@@ -33,6 +33,11 @@ const ASSETS = [
   { name: "girl-walk-l", frames: { dir: "girl", prefix: "a", count: 16 } },
   { name: "girl-air-r", frames: { dir: "girl", prefix: "f", count: 4 } },
   { name: "girl-air-l", frames: { dir: "girl", prefix: "e", count: 4 } },
+  // Ground start/stop lean banks (girlgsr/gsl in move.c set_bob:484-488).
+  // Raw mapping: c→LEFT, d→RIGHT — pattern-verified (pairs are alphabetical
+  // left-then-right: a/b, e/f) + visual frame inspection 2026-07-05.
+  { name: "girl-start-r", frames: { dir: "girl", prefix: "d", count: 8 } },
+  { name: "girl-start-l", frames: { dir: "girl", prefix: "c", count: 8 } },
 ];
 
 // Extract the ILBM CMAP chunk (raw palette triplets, 8-bit as stored).

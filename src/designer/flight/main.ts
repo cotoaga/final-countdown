@@ -6,6 +6,7 @@ import { BitmapFont } from "../../shared/font";
 import { startLoop } from "../../shared/loop";
 import { guard } from "../../shared/stage";
 import { initAnim, frameIndex, stepAnim } from "./anim";
+import { groundStateSprite, initGroundState, stepGroundState } from "./ground-states";
 import { CANON_CONSTANTS, stepFlight, type FlightBody, type FlightConstants } from "./physics";
 import { SpriteBank } from "./sprites";
 import { applyWorld, isOverGap, makeWorld } from "./world";
@@ -70,14 +71,17 @@ window.addEventListener("keyup", (e) => {
 });
 
 let anim = initAnim();
+let ground = initGroundState();
 
 guard(canvas, async () => {
   const font = await BitmapFont.load();
-  const [walkR, walkL, airR, airL] = await Promise.all([
+  const [walkR, walkL, airR, airL, startR, startL] = await Promise.all([
     SpriteBank.load("girl-walk-r"),
     SpriteBank.load("girl-walk-l"),
     SpriteBank.load("girl-air-r"),
     SpriteBank.load("girl-air-l"),
+    SpriteBank.load("girl-start-r"),
+    SpriteBank.load("girl-start-l"),
   ]);
 
   syncSliderUI();
@@ -85,7 +89,12 @@ guard(canvas, async () => {
   const tick = () => {
     const joyx = keys.has("arrowleft") || keys.has("a") ? -1 : keys.has("arrowright") || keys.has("d") ? 1 : 0;
     const thrustHeld = keys.has("arrowup") || keys.has("space");
-    body = stepFlight(body, { joyx, thrust: thrustHeld }, constants);
+    // specmv ground subset runs first and may override the stick (move.c order:
+    // state machine before movement — start forces the run, stop locks controls).
+    const onGround = body.yp >= world.floorYp;
+    const g = stepGroundState(ground, body.velx, joyx, thrustHeld, onGround);
+    ground = g.next;
+    body = stepFlight(body, { joyx: g.input.joyx, thrust: g.input.thrust }, constants);
     body = applyWorld(body, world);
     const flying = body.yp < world.floorYp;
     anim = stepAnim(anim, body.velx, flying);
@@ -103,8 +112,19 @@ guard(canvas, async () => {
     ctx.fillRect(gapEnd, floorScreenY, canvas.width - gapEnd, canvas.height - floorScreenY);
 
     const flying = body.yp < world.floorYp;
-    const bank = flying ? (anim.facing === 1 ? airR : airL) : anim.facing === 1 ? walkR : walkL;
-    const frame = frameIndex(anim, body.velx);
+    const gs = flying ? null : groundStateSprite(ground);
+    const bank = gs
+      ? gs.side === "r"
+        ? startR
+        : startL
+      : flying
+        ? anim.facing === 1
+          ? airR
+          : airL
+        : anim.facing === 1
+          ? walkR
+          : walkL;
+    const frame = gs ? gs.frame : frameIndex(anim, body.velx);
     const screenX = Math.round(body.xp / 32 - bank.frameW / 2);
     const screenY = Math.round(body.yp / 64 - bank.frameH);
     bank.draw(ctx, frame, screenX, screenY);

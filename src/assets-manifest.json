@@ -233,6 +233,26 @@
         "count": 4
       }
     },
+    "girl-start-l": {
+      "file": "assets/girl-start-l.png",
+      "w": 256,
+      "h": 42,
+      "frames": {
+        "w": 32,
+        "h": 42,
+        "count": 8
+      }
+    },
+    "girl-start-r": {
+      "file": "assets/girl-start-r.png",
+      "w": 256,
+      "h": 42,
+      "frames": {
+        "w": 32,
+        "h": 42,
+        "count": 8
+      }
+    },
     "girl-walk-l": {
       "file": "assets/girl-walk-l.png",
       "w": 512,

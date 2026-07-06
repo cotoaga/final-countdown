@@ -55,10 +55,20 @@ to taste; original gameplay rewards careful, intermittent thrust.
 - `girlgsr/gsl[8]` — ground START/STOP right/left (SMSTARTR/L, SMSTOPR/L — not "shoot")
 - `girlasr/asl[8]` — air start/end right/left (SMSAIRR/L, SMEAIRR/L)
 - `girltr[8]` — rotate-toward-camera bank, reused for THREE contexts:
-  turn-around (SMTURNS/SMTURNE), hide/enter (SMHIDEB/E), lift ride (SMLIFTUP/DN,
-  frame 7 held while moving)
+  use-device rotation (SMTURNS/SMTURNE — triggered by stick UP at an
+  MCOMPUTER/MSWITCH tile, `use_dev()` fires at the apex, move.c:361), hide/enter
+  (SMHIDEB/E), lift ride (SMLIFTUP/DN, frame 7 held while moving). NOT a
+  direction-reversal animation — an earlier note here claimed that; falsified
+  against move.c:361 on 2026-07-05.
+- **Direction reversal at speed = SMSTOP → SMSTART chain** (move.c:410-431):
+  |velx| ≥ 15 with stick released/opposed → SMSTOP (girlgs frames backward,
+  stick locked, friction brakes) → velx 0 → SMSTART opposite (frames forward,
+  run forced, 16 ticks). Below the threshold: instant flip, no ceremony.
+  Raw groups: `c` → gsl (left), `d` → gsr (right) — pattern + visual, 2026-07-05.
+- Raw groups `h`/`i` — jetpack-flame poses, presumed girlasl/asr (air start/end);
+  inferred from flame pixels + pair pattern, NOT yet verified in game logic.
+- Raw group `g` (16 frames) — front-facing rotation sequence: the dev source of
+  `girltr[8]` (16 drawn, 8 shipped). Unclaimed-group mystery closed 2026-07-05.
 - `girld[4]` — take/up/down poses (SMTAKEU/D, SMUP, SMDOWN — not death) → raw `d.` group
 - `girle[21]` — die AND appear (SMDIE, SMAPP; girlshp caps at 81 → 21 frames @ >>2) → raw `j` group
-- Raw group `g` (16 frames) and one 8-frame group are currently unclaimed by any
-  bank mapping — flagged, unverified, do not guess.
 Frame dims: girl ~32×42, bottom-align on the feet baseline.
