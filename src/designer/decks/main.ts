@@ -23,6 +23,12 @@ import {
   decodeStruct,
   matrixCell,
 } from '../../levels/decoder';
+import {
+  type ElementsBank,
+  TILE_INDEX_MASK,
+  decodeElements,
+  elementsBankForLevel,
+} from '../../levels/elements';
 
 const TILE = 16;
 
@@ -32,6 +38,11 @@ const matrixUrls = import.meta.glob('/assets/raw/lev/Matrix*', {
   eager: true,
 }) as Record<string, string>;
 const structUrls = import.meta.glob('/assets/raw/lev/Struct*', {
+  query: '?url',
+  import: 'default',
+  eager: true,
+}) as Record<string, string>;
+const elementsUrls = import.meta.glob('/assets/raw/lev/Elements*', {
   query: '?url',
   import: 'default',
   eager: true,
@@ -55,6 +66,58 @@ interface Deck {
 }
 
 const cache = new Map<number, Deck>();
+const elCache = new Map<number, ElementsBank>();
+const sheetCache = new Map<number, HTMLCanvasElement>();
+
+async function loadElementsBank(bank: number): Promise<ElementsBank> {
+  const hit = elCache.get(bank);
+  if (hit) return hit;
+  const el = decodeElements(await fetchBytes(urlFor(elementsUrls, 'Elements', bank)));
+  elCache.set(bank, el);
+  return el;
+}
+
+/** Amiga 12-bit 0x0RGB → [r,g,b] nibble-doubled (×17 == duplicate nibble). */
+function amigaRgb(c: number): [number, number, number] {
+  return [((c >> 8) & 15) * 17, ((c >> 4) & 15) * 17, (c & 15) * 17];
+}
+
+/**
+ * Pre-render a bank as a horizontal strip using the LEVEL'S OWN colortable —
+ * banks are shared across level groups, palettes are not, so the same tiles
+ * legitimately look different per deck (original behaviour).
+ */
+function buildTileSheet(bank: ElementsBank, colortable: number[]): HTMLCanvasElement {
+  const cv = document.createElement('canvas');
+  cv.width = bank.count * TILE;
+  cv.height = TILE;
+  const c2 = cv.getContext('2d')!;
+  const img = c2.createImageData(cv.width, TILE);
+  const pal = colortable.map(amigaRgb);
+  bank.tiles.forEach((tile, t) => {
+    for (let y = 0; y < TILE; y++) {
+      for (let x = 0; x < TILE; x++) {
+        const rgb = pal[tile[y * TILE + x]] ?? [255, 0, 255];
+        const o = (y * cv.width + t * TILE + x) * 4;
+        img.data[o] = rgb[0];
+        img.data[o + 1] = rgb[1];
+        img.data[o + 2] = rgb[2];
+        img.data[o + 3] = 255;
+      }
+    }
+  });
+  c2.putImageData(img, 0, 0);
+  return cv;
+}
+
+async function sheetForLevel(level: number, deck: Deck): Promise<HTMLCanvasElement> {
+  const hit = sheetCache.get(level);
+  if (hit) return hit;
+  const bank = await loadElementsBank(elementsBankForLevel(level));
+  const sheet = buildTileSheet(bank, deck.struct.colortable);
+  sheetCache.set(level, sheet);
+  return sheet;
+}
 
 async function loadDeck(level: number): Promise<Deck> {
   const hit = cache.get(level);
@@ -74,19 +137,36 @@ function cellColor(value: number, palette: string[]): string {
   return palette[idx];
 }
 
-function drawDeck(ctx: CanvasRenderingContext2D, deck: Deck): void {
+function drawDeck(ctx: CanvasRenderingContext2D, deck: Deck, sheet: HTMLCanvasElement | null): void {
   const { matrix, struct } = deck;
   const palette = struct.colortable.map(amigaColorToCss);
 
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, MATRIX_COLS * TILE, MATRIX_ROWS * TILE);
 
-  for (let r = 0; r < matrix.rows; r++) {
-    for (let c = 0; c < matrix.cols; c++) {
-      const v = matrixCell(matrix, r, c);
-      if (v === 0) continue;
-      ctx.fillStyle = cellColor(v, palette);
-      ctx.fillRect(c * TILE, r * TILE, TILE - 1, TILE - 1);
+  if (sheet) {
+    // Real graphics: idx = cell & 0x01FF straight into the bank, every cell
+    // (cell 0 blits ground[0] in the original — trans.asm), 1990 pixels.
+    const count = sheet.width / TILE;
+    for (let r = 0; r < matrix.rows; r++) {
+      for (let c = 0; c < matrix.cols; c++) {
+        const idx = matrixCell(matrix, r, c) & TILE_INDEX_MASK;
+        if (idx < count) {
+          ctx.drawImage(sheet, idx * TILE, 0, TILE, TILE, c * TILE, r * TILE, TILE, TILE);
+        } else {
+          ctx.fillStyle = '#f0f'; // out-of-bank index — loudly visible, never guessed
+          ctx.fillRect(c * TILE, r * TILE, TILE, TILE);
+        }
+      }
+    }
+  } else {
+    for (let r = 0; r < matrix.rows; r++) {
+      for (let c = 0; c < matrix.cols; c++) {
+        const v = matrixCell(matrix, r, c);
+        if (v === 0) continue;
+        ctx.fillStyle = cellColor(v, palette);
+        ctx.fillRect(c * TILE, r * TILE, TILE - 1, TILE - 1);
+      }
     }
   }
 
@@ -136,6 +216,7 @@ function describe(deck: Deck, col: number, row: number): string {
   const parts: string[] = [`COL ${col} ROW ${row}`];
   const v = matrixCell(deck.matrix, row, col);
   parts.push(`CELL 0x${v.toString(16).toUpperCase().padStart(4, '0')}`);
+  parts.push(`TILE ${v & TILE_INDEX_MASK}`);
 
   const comp = deck.struct.comps.find((c) => c.x === col && c.y === row);
   if (comp) parts.push(`TERMINAL typ=${comp.typ} files=[${comp.fileNames.join(', ') || '—'}]`);
@@ -154,19 +235,27 @@ function describe(deck: Deck, col: number, row: number): string {
 async function main(): Promise<void> {
   const canvas = document.querySelector<HTMLCanvasElement>('#deck-canvas');
   const select = document.querySelector<HTMLSelectElement>('#deck');
+  const mode = document.querySelector<HTMLSelectElement>('#mode');
   const readout = document.querySelector<HTMLParagraphElement>('#readout');
-  if (!canvas || !select || !readout) throw new Error('deck viewer: missing DOM');
+  if (!canvas || !select || !mode || !readout) throw new Error('deck viewer: missing DOM');
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('deck viewer: no 2d context');
 
   let deck = await loadDeck(Number(select.value));
-  drawDeck(ctx, deck);
+
+  const redraw = async (): Promise<void> => {
+    const level = Number(select.value);
+    deck = await loadDeck(level);
+    const sheet = mode.value === 'tiles' ? await sheetForLevel(level, deck) : null;
+    drawDeck(ctx, deck, sheet);
+  };
+  await redraw();
 
   select.addEventListener('change', async () => {
-    deck = await loadDeck(Number(select.value));
-    drawDeck(ctx, deck);
+    await redraw();
     readout.textContent = `LEVEL ${select.value} · ${deck.struct.comps.length} TERMINALS · ${deck.struct.devices.length} DEVICES · ${deck.struct.foes.length} FOES`;
   });
+  mode.addEventListener('change', () => void redraw());
 
   const tileAt = (ev: MouseEvent): { col: number; row: number } => {
     const rect = canvas.getBoundingClientRect();
