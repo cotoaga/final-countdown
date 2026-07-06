@@ -64,9 +64,18 @@ to taste; original gameplay rewards careful, intermittent thrust.
   |velx| ≥ 15 with stick released/opposed → SMSTOP (girlgs frames backward,
   stick locked, friction brakes) → velx 0 → SMSTART opposite (frames forward,
   run forced, 16 ticks). Below the threshold: instant flip, no ceremony.
-  Raw groups: `c` → gsl (left), `d` → gsr (right) — pattern + visual, 2026-07-05.
-- Raw groups `h`/`i` — jetpack-flame poses, presumed girlasl/asr (air start/end);
-  inferred from flame pixels + pair pattern, NOT yet verified in game logic.
+  Raw groups: `c` → gsr (RIGHT), `d` → gsl (LEFT) — designer-falsified the first
+  assignment on screen, anchor-verified 2026-07-06.
+- **Air reversal is the same chain in the sky** (move.c:281-299): SMFLY at
+  |velx| ≥ 15, stick off/opposed → SMEAIRR/L (air brake, stick locked) →
+  velx 0 → SMSAIRR/L (lean into new flight direction). One faithful
+  difference: THRUST STAYS LIVE in all air states (move.c:92-121 — no joyy
+  lock; the jetpack never locks, only the stick).
+- Raw groups `h` → asr (RIGHT), `i` → asl (LEFT) — jetpack-flame lean poses,
+  anchor-verified against a00, 2026-07-06.
+- **LETTER PREFIXES CARRY NO FACING CONVENTION** (a=L b=R, c=R d=L, e=L f=R,
+  h=R i=L). Any facing claim requires anchor comparison against a verified
+  frame — the "alphabetical pairs" rule was falsified 2026-07-06.
 - Raw group `g` (16 frames) — front-facing rotation sequence: the dev source of
   `girltr[8]` (16 drawn, 8 shipped). Unclaimed-group mystery closed 2026-07-05.
 - `girld[4]` — take/up/down poses (SMTAKEU/D, SMUP, SMDOWN — not death) → raw `d.` group

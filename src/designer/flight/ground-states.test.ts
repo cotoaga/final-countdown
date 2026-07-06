@@ -74,17 +74,51 @@ describe('ground state machine — specmv port', () => {
     expect(seen.indexOf('start-l')).toBeGreaterThan(seen.indexOf('stop-r'));
   });
 
-  it('airborne resets to ground and passes input through', () => {
+  it('airborne resets ground-family states to neutral and passes input through', () => {
     const s: GroundState = { name: 'stop-r', shp: 7 };
     const r = stepGroundState(s, 20, 1, true, false);
-    expect(r.next.name).toBe('ground');
-    expect(r.input.joyx).toBe(1);
+    expect(r.next.name).not.toBe('stop-r');
     expect(r.input.thrust).toBe(true);
   });
 
-  it('sprite override maps state to girlgs bank side + frame (shp>>1)', () => {
-    expect(groundStateSprite({ name: 'start-r', shp: 15 })).toEqual({ side: 'r', frame: 7 });
-    expect(groundStateSprite({ name: 'stop-l', shp: 4 })).toEqual({ side: 'l', frame: 2 });
+  it('AIR TURN: flying right, flip stick — eair-r brakes to 0, sair-l leans left, thrust NEVER locked', () => {
+    let body: FlightBody = { xp: 2000, yp: 500, velx: 0, vely: 0, fuel: 10000 };
+    let state = initGroundState();
+    const seen: string[] = [];
+    const drive = (joyx: -1 | 0 | 1, until: (b: FlightBody, s: GroundState) => boolean) => {
+      for (let t = 0; t < 400; t++) {
+        const g = stepGroundState(state, body.velx, joyx, true, false); // airborne, thrust held
+        state = g.next;
+        if (seen[seen.length - 1] !== state.name) seen.push(state.name);
+        expect(g.input.thrust).toBe(true); // the jetpack never locks — move.c:92-121
+        body = stepFlight(body, { joyx: g.input.joyx, thrust: g.input.thrust }, CANON_CONSTANTS);
+        body = { ...body, yp: 500, vely: 0 }; // pin airborne for this test
+        if (until(body, state)) return;
+      }
+      throw new Error('drive() never reached condition');
+    };
+
+    drive(1, (b) => b.velx >= STOP_THRESHOLD + 5); // fly right past threshold
+    drive(-1, (_b, s) => s.name === 'eair-r'); // flip → air brake
+    drive(-1, (b, s) => s.name === 'ground' && b.velx === 0); // brake completes
+    drive(-1, (_b, s) => s.name === 'sair-l'); // lean into left flight
+    drive(-1, (b) => b.velx <= -5);
+
+    expect(seen.indexOf('eair-r')).toBeGreaterThan(seen.indexOf('sair-r'));
+    expect(seen.indexOf('sair-l')).toBeGreaterThan(seen.indexOf('eair-r'));
+  });
+
+  it('landing resets air-family states to neutral', () => {
+    const s: GroundState = { name: 'eair-l', shp: 5 };
+    const r = stepGroundState(s, 0, 0, false, true);
+    expect(['ground'].includes(r.next.name)).toBe(true);
+  });
+
+  it('sprite override maps state to bank + side + frame (shp>>1)', () => {
+    expect(groundStateSprite({ name: 'start-r', shp: 15 })).toEqual({ bank: 'start', side: 'r', frame: 7 });
+    expect(groundStateSprite({ name: 'stop-l', shp: 4 })).toEqual({ bank: 'start', side: 'l', frame: 2 });
+    expect(groundStateSprite({ name: 'sair-r', shp: 8 })).toEqual({ bank: 'sair', side: 'r', frame: 4 });
+    expect(groundStateSprite({ name: 'eair-l', shp: 15 })).toEqual({ bank: 'sair', side: 'l', frame: 7 });
     expect(groundStateSprite({ name: 'ground', shp: 0 })).toBeNull();
   });
 });

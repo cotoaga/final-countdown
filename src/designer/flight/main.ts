@@ -75,13 +75,15 @@ let ground = initGroundState();
 
 guard(canvas, async () => {
   const font = await BitmapFont.load();
-  const [walkR, walkL, airR, airL, startR, startL] = await Promise.all([
+  const [walkR, walkL, airR, airL, startR, startL, sairR, sairL] = await Promise.all([
     SpriteBank.load("girl-walk-r"),
     SpriteBank.load("girl-walk-l"),
     SpriteBank.load("girl-air-r"),
     SpriteBank.load("girl-air-l"),
     SpriteBank.load("girl-start-r"),
     SpriteBank.load("girl-start-l"),
+    SpriteBank.load("girl-sair-r"),
+    SpriteBank.load("girl-sair-l"),
   ]);
 
   syncSliderUI();
@@ -112,11 +114,15 @@ guard(canvas, async () => {
     ctx.fillRect(gapEnd, floorScreenY, canvas.width - gapEnd, canvas.height - floorScreenY);
 
     const flying = body.yp < world.floorYp;
-    const gs = flying ? null : groundStateSprite(ground);
+    const gs = groundStateSprite(ground);
     const bank = gs
-      ? gs.side === "r"
-        ? startR
-        : startL
+      ? gs.bank === "start"
+        ? gs.side === "r"
+          ? startR
+          : startL
+        : gs.side === "r"
+          ? sairR
+          : sairL
       : flying
         ? anim.facing === 1
           ? airR
