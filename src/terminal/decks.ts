@@ -2,6 +2,13 @@
 //   passcomp/passfile/autcodedev/autcodefil .... reference/src/cli.c
 //   pcomno (which computer is the protected one) ........ reference/src/comp.c
 //   diskfiles (the 8 shared disks) ...................... reference/src/start.c
+//
+// KILL ORDER (COT-81, Kurt 2026-07-06): cli.c ALSO contains manual-based COPY
+// PROTECTION — chklin1/2/3 (cli.c:64-78, fired at cli.c:222-224): random
+// questions about the printed Kurzübersicht card / "SEITE 7" of the paper
+// manual; wrong answer sets `fatal`. Deliberately NOT ported, never to be
+// ported. Do not mistake it for a missing feature. The in-game access codes
+// (AUTCODEDEV/PASSCOMP below) are GAMEPLAY and stay.
 // The canonical per-computer SYSTEM file lists and device layouts live in the
 // binary DISK01:lev/Struct0N level files, which are NOT in this repo. Device
 // sets below are marked ILLUSTRATIVE: they exercise the real command logic
