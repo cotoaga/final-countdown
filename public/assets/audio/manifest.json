@@ -1,0 +1,293 @@
+{
+  "source": {
+    "Sound": "assets/raw/audio/Sound (96550 B, 21 samples)",
+    "SSound": "assets/raw/audio/SSound (33124 B, 4 samples)",
+    "title": "assets/raw/audio/title (88490 B NoiseTracker MOD)"
+  },
+  "format": "raw signed 8-bit PCM, mono, Paula rate = 3546895/period (PAL)",
+  "engine": {
+    "channels": "Paula 0-3; ch0 reserved for sound 4 (background); ch1-3 priority-stolen",
+    "allocation": "do_sound picks lowest-priority busy channel among 1-3; plays only if sound.pri >= channel's current pri",
+    "negativeIndices": "do_sound(-n) plays syssound[n-1]",
+    "killRule": "kill_chan_with_pri(p) silences channels holding priority p (used to stop text-scroll sound 16)"
+  },
+  "sfx": [
+    {
+      "index": 0,
+      "file": "sfx00.wav",
+      "bytes": 2974,
+      "paulaPeriod": 428,
+      "sampleRateHz": 8287,
+      "volume": 64,
+      "priority": 7,
+      "durationSec": 0.359,
+      "usage": "pickup/collect (mine, fuel, disk, mine-drop) + computer boot dots"
+    },
+    {
+      "index": 1,
+      "file": "sfx01.wav",
+      "bytes": 6940,
+      "paulaPeriod": 856,
+      "sampleRateHz": 4144,
+      "volume": 64,
+      "priority": 7,
+      "durationSec": 1.675,
+      "usage": "death / explosion (Laira dies, level-start flash, light_end)"
+    },
+    {
+      "index": 2,
+      "file": "sfx02.wav",
+      "bytes": 2544,
+      "paulaPeriod": 856,
+      "sampleRateHz": 4144,
+      "volume": 64,
+      "priority": 7,
+      "durationSec": 0.614,
+      "usage": "mine armed / countdown set (played twice); intal fatal warning"
+    },
+    {
+      "index": 3,
+      "file": "sfx03.wav",
+      "bytes": 1380,
+      "paulaPeriod": 1072,
+      "sampleRateHz": 3309,
+      "volume": 64,
+      "priority": 15,
+      "durationSec": 0.417,
+      "usage": "thrust / jetpack ignition (move.c joyy<0, one-shot on thrust start)"
+    },
+    {
+      "index": 4,
+      "file": "sfx04.wav",
+      "bytes": 7536,
+      "paulaPeriod": 856,
+      "sampleRateHz": 4144,
+      "volume": 20,
+      "priority": 11,
+      "durationSec": 1.819,
+      "usage": "background ambience \u2014 forced onto channel 0 at level start"
+    },
+    {
+      "index": 5,
+      "file": "sfx05.wav",
+      "bytes": 7972,
+      "paulaPeriod": 1440,
+      "sampleRateHz": 2463,
+      "volume": 64,
+      "priority": 6,
+      "durationSec": 3.237,
+      "usage": "lift movement"
+    },
+    {
+      "index": 6,
+      "file": "sfx06.wav",
+      "bytes": 4194,
+      "paulaPeriod": 856,
+      "sampleRateHz": 4144,
+      "volume": 64,
+      "priority": 9,
+      "durationSec": 1.012,
+      "usage": "message arrival (mestime score milestones)"
+    },
+    {
+      "index": 7,
+      "file": "sfx07.wav",
+      "bytes": 4138,
+      "paulaPeriod": 1712,
+      "sampleRateHz": 2072,
+      "volume": 64,
+      "priority": 5,
+      "durationSec": 1.997,
+      "usage": "tarpen pulse / novbom alarm component A"
+    },
+    {
+      "index": 8,
+      "file": "sfx08.wav",
+      "bytes": 4462,
+      "paulaPeriod": 1712,
+      "sampleRateHz": 2072,
+      "volume": 64,
+      "priority": 5,
+      "durationSec": 2.153,
+      "usage": "hygkoo event / novbom alarm component B"
+    },
+    {
+      "index": 9,
+      "file": "sfx09.wav",
+      "bytes": 2964,
+      "paulaPeriod": 760,
+      "sampleRateHz": 4667,
+      "volume": 64,
+      "priority": 5,
+      "durationSec": 0.635,
+      "usage": "(no call site found in C \u2014 likely asm or unused)"
+    },
+    {
+      "index": 10,
+      "file": "sfx10.wav",
+      "bytes": 6008,
+      "paulaPeriod": 1712,
+      "sampleRateHz": 2072,
+      "volume": 64,
+      "priority": 3,
+      "durationSec": 2.9,
+      "usage": "sprite spawn (add_sprite)"
+    },
+    {
+      "index": 11,
+      "file": "sfx11.wav",
+      "bytes": 9102,
+      "paulaPeriod": 1000,
+      "sampleRateHz": 3547,
+      "volume": 64,
+      "priority": 8,
+      "durationSec": 2.566,
+      "usage": "foe killed / final flash explosions (x3 at light_end)"
+    },
+    {
+      "index": 12,
+      "file": "sfx12.wav",
+      "bytes": 4500,
+      "paulaPeriod": 428,
+      "sampleRateHz": 8287,
+      "volume": 64,
+      "priority": 12,
+      "durationSec": 0.543,
+      "usage": "(no call site found in C)"
+    },
+    {
+      "index": 13,
+      "file": "sfx13.wav",
+      "bytes": 4124,
+      "paulaPeriod": 1712,
+      "sampleRateHz": 2072,
+      "volume": 64,
+      "priority": 6,
+      "durationSec": 1.99,
+      "usage": "device ON (energy barrier, antigrav, foe gate) + novbom"
+    },
+    {
+      "index": 14,
+      "file": "sfx14.wav",
+      "bytes": 4416,
+      "paulaPeriod": 856,
+      "sampleRateHz": 4144,
+      "volume": 64,
+      "priority": 6,
+      "durationSec": 1.066,
+      "usage": "device OFF"
+    },
+    {
+      "index": 15,
+      "file": "sfx15.wav",
+      "bytes": 4438,
+      "paulaPeriod": 1712,
+      "sampleRateHz": 2072,
+      "volume": 64,
+      "priority": 9,
+      "durationSec": 2.142,
+      "usage": "(no call site found in C)"
+    },
+    {
+      "index": 16,
+      "file": "sfx16.wav",
+      "bytes": 7470,
+      "paulaPeriod": 856,
+      "sampleRateHz": 4144,
+      "volume": 64,
+      "priority": 13,
+      "durationSec": 1.803,
+      "usage": "computer text print scroll (pri 13, killed via kill_chan_with_pri)"
+    },
+    {
+      "index": 17,
+      "file": "sfx17.wav",
+      "bytes": 4296,
+      "paulaPeriod": 856,
+      "sampleRateHz": 4144,
+      "volume": 64,
+      "priority": 14,
+      "durationSec": 1.037,
+      "usage": "(no call site found in C)"
+    },
+    {
+      "index": 18,
+      "file": "sfx18.wav",
+      "bytes": 474,
+      "paulaPeriod": 856,
+      "sampleRateHz": 4144,
+      "volume": 64,
+      "priority": 8,
+      "durationSec": 0.114,
+      "usage": "key click (terminal), radiation/xray tick, green-poison tick"
+    },
+    {
+      "index": 19,
+      "file": "sfx19.wav",
+      "bytes": 5462,
+      "paulaPeriod": 856,
+      "sampleRateHz": 4144,
+      "volume": 64,
+      "priority": 9,
+      "durationSec": 1.318,
+      "usage": "(no call site found in C)"
+    },
+    {
+      "index": 20,
+      "file": "sfx20.wav",
+      "bytes": 1156,
+      "paulaPeriod": 680,
+      "sampleRateHz": 5216,
+      "volume": 32,
+      "priority": 4,
+      "durationSec": 0.222,
+      "usage": "footsteps (SMGROUND walk, every 32nd frame of anim cycle)"
+    }
+  ],
+  "syssfx": [
+    {
+      "index": 0,
+      "file": "sys00.wav",
+      "bytes": 9634,
+      "paulaPeriod": 428,
+      "sampleRateHz": 8287,
+      "volume": 64,
+      "priority": 7,
+      "durationSec": 1.163,
+      "usage": "system computer sound 0 (do_sound(-1))"
+    },
+    {
+      "index": 1,
+      "file": "sys01.wav",
+      "bytes": 9094,
+      "paulaPeriod": 428,
+      "sampleRateHz": 8287,
+      "volume": 64,
+      "priority": 7,
+      "durationSec": 1.097,
+      "usage": "system computer sound 1 (do_sound(-2))"
+    },
+    {
+      "index": 2,
+      "file": "sys02.wav",
+      "bytes": 3086,
+      "paulaPeriod": 428,
+      "sampleRateHz": 8287,
+      "volume": 64,
+      "priority": 13,
+      "durationSec": 0.372,
+      "usage": "start-text scroll amb (do_sound(-3) in put_start_text)"
+    },
+    {
+      "index": 3,
+      "file": "sys03.wav",
+      "bytes": 11310,
+      "paulaPeriod": 904,
+      "sampleRateHz": 3924,
+      "volume": 20,
+      "priority": 12,
+      "durationSec": 2.882,
+      "usage": "system computer sound 3 (do_sound(-4))"
+    }
+  ]
+}
