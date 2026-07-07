@@ -175,23 +175,23 @@
     "computer": {
       "file": "assets/computer.png",
       "w": 640,
-      "h": 192,
+      "h": 256,
       "screen": {
         "x": 88,
-        "y": 10,
+        "y": 13,
         "w": 358,
-        "h": 102
+        "h": 137
       }
     },
     "computer-tercom": {
       "file": "assets/computer-tercom.png",
       "w": 640,
-      "h": 192,
+      "h": 256,
       "screen": {
         "x": 87,
-        "y": 11,
+        "y": 14,
         "w": 356,
-        "h": 100
+        "h": 135
       }
     },
     "demonlogo": {

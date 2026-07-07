@@ -21,8 +21,11 @@ const ASSETS = [
   { name: "titlescreen", raw: "pics/Titelscreen" },
   { name: "background", raw: "pics/Background" },
   { name: "asteroid", raw: "pics/Asteroid", palette: true },
-  { name: "computer", raw: "pics/Computer", screen: true },
-  { name: "computer-tercom", raw: "pics/ComputerTercom", screen: true },
+  // BMHD: raster 640x192, page 640x256 — the Amiga screen mode stretched
+  // these 192 lines to fill a 256-line 4:3 display. Rendered 1:1 they look
+  // squashed into extreme landscape; stretchToPageHeight redoes that stretch.
+  { name: "computer", raw: "pics/Computer", screen: true, stretchToPageHeight: true },
+  { name: "computer-tercom", raw: "pics/ComputerTercom", screen: true, stretchToPageHeight: true },
   { name: "font", raw: "obj/font", font: { cellW: 8, cellH: 8 } },
   { name: "energy", raw: "obj/energy" },
   // Laira walk/air banks. Direction mapping CORRECTED 2026-07-05: the raw `a`
@@ -64,6 +67,23 @@ function parseCMAP(path) {
     i += 8 + len + (len & 1); // chunks are word-aligned
   }
   throw new Error(`${path}: no CMAP chunk`);
+}
+
+// BMHD: raster w/h plus the ILBM's intended "page" (screen mode) w/h.
+function parseBMHD(path) {
+  const buf = readFileSync(path);
+  if (buf.toString("ascii", 0, 4) !== "FORM") throw new Error(`${path}: not IFF`);
+  let i = 12;
+  while (i + 8 <= buf.length) {
+    const id = buf.toString("ascii", i, i + 4);
+    const len = buf.readUInt32BE(i + 4);
+    if (id === "BMHD") {
+      const body = i + 8;
+      return { pageW: buf.readInt16BE(body + 16), pageH: buf.readInt16BE(body + 18) };
+    }
+    i += 8 + len + (len & 1);
+  }
+  throw new Error(`${path}: no BMHD chunk`);
 }
 
 function run(cmd, args, input) {
@@ -130,6 +150,18 @@ function detectScreen({ w, h, data }) {
   return { x: best.minX + 2, y: best.minY + 2, w: best.maxX - best.minX - 3, h: best.maxY - best.minY - 3 };
 }
 
+// Nearest-neighbour vertical stretch — keeps pixel edges crisp (matches the
+// `image-rendering: pixelated` convention) instead of blurring with interpolation.
+function stretchVertical({ w, h, data }, targetH) {
+  if (h === targetH) return { w, h, data };
+  const out = Buffer.alloc(w * targetH * 3);
+  for (let y = 0; y < targetH; y++) {
+    const sy = Math.floor((y * h) / targetH);
+    data.copy(out, y * w * 3, sy * w * 3, (sy + 1) * w * 3);
+  }
+  return { w, h: targetH, data: out };
+}
+
 function ppmBuffer(w, h, data) {
   return Buffer.concat([Buffer.from(`P6\n${w} ${h}\n255\n`, "ascii"), data]);
 }
@@ -173,6 +205,10 @@ for (const a of ASSETS) {
     const buf = run("ilbmtoppm", ["-adjustcolors", resolve(RAW, a.raw)]);
     const p = parsePPM(buf);
     composed = { w: p.w, h: p.h, data: p.data };
+    if (a.stretchToPageHeight) {
+      const { pageH } = parseBMHD(resolve(RAW, a.raw));
+      composed = stretchVertical(composed, pageH);
+    }
   }
 
   const png = run("pnmtopng", [], ppmBuffer(composed.w, composed.h, composed.data));
