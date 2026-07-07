@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FINAL COUNTDOWN — ARCHIV</title>
+    <link rel="stylesheet" href="./src/style.css" />
+    <style>
+      .lore { max-width: 980px; margin: 0 auto; padding: 20px; }
+      .lore h1 { color: var(--accent2); letter-spacing: .18em; }
+      .lore nav.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 22px; }
+      .lore nav.tabs button { background: var(--panel); color: var(--ink); border: 2px solid var(--line);
+        font: inherit; padding: 8px 14px; cursor: pointer; text-transform: uppercase; }
+      .lore nav.tabs button.on { border-color: var(--accent); color: var(--accent2); }
+      .lore section { display: none; }
+      .lore section.on { display: block; }
+      .doc { border: 2px solid var(--line); background: var(--panel); margin: 0 0 14px; }
+      .doc > summary { padding: 8px 12px; cursor: pointer; color: var(--accent2); list-style: none; }
+      .doc > summary::before { content: "▸ "; color: var(--accent); }
+      .doc[open] > summary::before { content: "▾ "; }
+      .doc pre { margin: 0; padding: 12px 16px; border-top: 2px solid var(--line);
+        white-space: pre-wrap; font: inherit; text-transform: none; color: var(--ink); }
+      .path { border-left: 4px solid var(--accent); padding: 4px 14px; margin: 0 0 12px; }
+      .path b { color: var(--accent2); }
+      .path .trap { color: #ff5252; }
+      .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+      .gallery figure { margin: 0; border: 2px solid var(--line); background: var(--panel); }
+      .gallery img { width: 100%; height: auto; display: block; }
+      .gallery figcaption { padding: 6px 8px; font-size: 12px; color: var(--ink-dim); }
+      .back { display: inline-block; margin-bottom: 8px; color: var(--ink-dim); text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <main class="lore">
+      <a class="back" href="./index.html">◀ MENU</a>
+      <h1>SCHIFFSARCHIV · VARGHUR</h1>
+      <nav class="tabs" id="tabs">
+        <button data-t="path" class="on">GOLDENER PFAD</button>
+        <button data-t="msg">FUNKSPRÜCHE</button>
+        <button data-t="term">TERMINALS</button>
+        <button data-t="disk">DISKETTEN</button>
+        <button data-t="pics">DIAGRAMME</button>
+      </nav>
+
+      <section id="path" class="on">
+        <div class="path"><b>0 · LAGE.</b> Laira Tyrik an Bord der VARGHUR. Bordrechner HYGOR steuert
+          das Schiff Richtung Zielplanet. An Bord: der NASKUR-DETONATOR — eine Novabombe.
+          Der Zähler <b>itime</b> läuft; bei 10000 zündet sie. Jede Sabotage hebt den Zähler an:
+          2000 → 8000 → 9500 → 9800. Sabotage hat einen Preis.</div>
+        <div class="path"><b>1 · DISKETTEN SAMMELN.</b> 8 Disketten liegen auf den Decks. Jede öffnet
+          ein Verzeichnis mit genau einem Waffenprogramm + Doku. Jedes Programm läuft nur an EINEM
+          Terminal — meist auf einem anderen Deck als der Fundort.</div>
+        <div class="path"><b>2 · ORDER298 zuerst</b> (Disk 7 → Deck 3, Terminal 8): sendet die Botschaft
+          über das SEMORCOM. <b>Braucht HYGOR lebendig</b> — nach dessen Ende geht nichts mehr raus.</div>
+        <div class="path"><b>3 · DERURTACHYN</b> (Disk 1 → Deck 3, T7): Tachyon-Desolator aus,
+          Energieplattform Deck 7 deaktiviert. itime ≥ 2000.</div>
+        <div class="path"><b>4 · DERURASSIM</b> (Disk 2 → Deck 7, T10): Solar-Assimilator aus, Tor auf
+          Deck 7 öffnet. VARGHUR beschleunigt weg von Sol — <b>eigene 200-Tick-Todesuhr!</b> itime ≥ 8000.</div>
+        <div class="path"><b>5 · DERUREKIN</b> (SYSTEM → Deck 4, T2): stoppt den Ekin-Manipulator und
+          damit den Fluchtbrand. Nur bei laufendem steexc. itime ≥ 9500.</div>
+        <div class="path"><b>6 · MOEBIUS</b> (Disk 4 → Deck 7, T8): korrumpiert die ENERK-Aufsicht.
+          Kaskade: Tarpen überhitzt → Vichoroff zerstört, Notstrom → <b>HYGOR: DISABLED</b>. Kein
+          DERURHYGOR existiert — der Rechner wird ausgehungert, nicht abgeschaltet. itime ≥ 9800, Licht aus.</div>
+        <div class="path"><b>7 · DERURNSKR</b> (Disk 5 → Deck 5, T5): <b>nur bei totem HYGOR.</b>
+          Novabombe abgebrochen, Selbstzerstörung aktiviert — 200 Ticks. Vorher ausgeführt:
+          fatal, Alarm Klasse II, Fluchtwege versiegelt.</div>
+        <div class="path"><b>8 · CORURDEIMAR</b> (Disk 6 → Deck 8, T6): DEIMAR-Transporter programmieren.
+          <b>Masse 76 · Ziel 3263 / 3608 / 4433</b> · Zeitversatz → ttime.</div>
+        <div class="path"><b>9 · RAUS.</b> Bei score == ttime auf <b>Deck 2, x 51–69</b> stehen.
+          Beamen. Schiff zerstört sich, Botschaft gesendet, Laira intakt — nur bei exakten Koordinaten.
+          Alle 8 Disketten gesammelt = Bestwertung.</div>
+        <div class="path trap"><b>FALLEN.</b> DERURVIHF und DERURTRN sind Köder — fatal selbst am
+          "richtigen" Terminal. MOEBIUS auf Deck 8 T9: fatal. Falsches Passwort ×10: itime 9998.
+          Das Dateisystem lügt. Doku lesen ist Überleben.</div>
+      </section>
+
+      <section id="msg"></section>
+      <section id="term"></section>
+      <section id="disk"></section>
+      <section id="pics"><div class="gallery" id="gal"></div></section>
+    </main>
+    <script type="module" src="./src/lore/main.ts"></script>
+  </body>
+</html>
