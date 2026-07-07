@@ -212,3 +212,53 @@ canvas {
   color: var(--accent2);
   border-color: var(--accent);
 }
+
+/* ---- sounds panel (designer tool) ---- */
+.sounds-title {
+  width: min(96vw, 960px);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  font-size: 12px;
+}
+.sounds-title audio {
+  flex: 1;
+  min-width: 200px;
+}
+.sounds-scroll {
+  width: min(96vw, 960px);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.sounds-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.sounds-table th,
+.sounds-table td {
+  padding: 5px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.sounds-table th {
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+  color: var(--accent2);
+  cursor: pointer;
+  user-select: none;
+}
+.sounds-table th:hover {
+  color: var(--accent);
+}
+.sounds-table td:last-child {
+  white-space: normal;
+}
+.sounds-table tr.orphan td {
+  color: var(--accent);
+}

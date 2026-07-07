@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FINAL COUNTDOWN — sounds panel</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div class="stage stage-wide">
+      <div class="bar">
+        <a class="back" href="./index.html">‹ menu</a>
+        <span class="bar-title">SOUNDS · DESIGNER</span>
+      </div>
+      <div class="sounds-title">
+        <span>TITLE — "COUNTDOWN TITLE" · TORSTEN GELLRICH</span>
+        <audio controls preload="metadata" src="./assets/audio/title.mp3"></audio>
+      </div>
+      <div class="deck-scroll sounds-scroll">
+        <table class="sounds-table">
+          <thead>
+            <tr>
+              <th data-key="index">ID</th>
+              <th></th>
+              <th data-key="durationSec">DUR</th>
+              <th data-key="sampleRateHz">RATE</th>
+              <th data-key="paulaPeriod">PERIOD</th>
+              <th data-key="volume">VOL</th>
+              <th data-key="priority">PRI</th>
+              <th>USAGE (from do_sound call sites)</th>
+            </tr>
+          </thead>
+          <tbody id="sounds-body"></tbody>
+        </table>
+      </div>
+      <p class="hint legend" id="readout">LOADING /ASSETS/AUDIO/MANIFEST.JSON…</p>
+    </div>
+    <script type="module" src="./src/designer/sounds/main.ts"></script>
+  </body>
+</html>
