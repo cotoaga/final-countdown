@@ -45,6 +45,12 @@ const ASSETS = [
   { name: "girl-start-l", frames: { dir: "girl", prefix: "d", count: 8 } },
   { name: "girl-sair-r", frames: { dir: "girl", prefix: "h", count: 8 } },
   { name: "girl-sair-l", frames: { dir: "girl", prefix: "i", count: 8 } },
+  // girltr — rotate-toward-camera bank (use-device/hide/lift, move.c:361,
+  // set_bob:496-517). Dev source `g00..g15`: g00 is dead-on front-facing,
+  // g15 is full side profile — visually confirmed 2026-07-08. The shipped
+  // game halved this to girltr[8] (girlshp>>2); this sandbox keeps all 16
+  // (girlshp>>1) for a smoother preview at the same total tick duration.
+  { name: "girl-turn", frames: { dir: "girl", prefix: "g", count: 16 } },
 ];
 
 // Extract the ILBM CMAP chunk (raw palette triplets, 8-bit as stored).

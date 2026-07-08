@@ -9,6 +9,7 @@ import { initAnim, frameIndex, stepAnim } from "./anim";
 import { groundStateSprite, initGroundState, stepGroundState } from "./ground-states";
 import { CANON_CONSTANTS, stepFlight, type FlightBody, type FlightConstants } from "./physics";
 import { SpriteBank } from "./sprites";
+import { initTerminalTurn, stepTerminalTurn, terminalTurnFrame, triggerTerminalTurn } from "./terminal-turn";
 import { applyWorld, isOverGap, makeWorld } from "./world";
 
 const FUEL_MAX = 200;
@@ -56,14 +57,25 @@ let body: FlightBody = { xp: world.spawnXp, yp: world.spawnYp, velx: 0, vely: 0,
 const refuel = () => (body = { ...body, fuel: FUEL_MAX });
 refuelBtn.addEventListener("click", refuel);
 
+let terminalTurn = initTerminalTurn();
+
 const keys = new Set<string>();
 const keyName = (k: string) => (k === " " ? "space" : k.toLowerCase());
 window.addEventListener("keydown", (e) => {
   if (e.target instanceof HTMLInputElement) return;
   const k = keyName(e.key);
-  if (["arrowleft", "arrowright", "arrowup", "space", "a", "d", "r"].includes(k)) e.preventDefault();
+  if (["arrowleft", "arrowright", "arrowup", "arrowdown", "space", "a", "d", "r"].includes(k)) e.preventDefault();
   keys.add(k);
   if (k === "r") refuel();
+  // Terminal-turn preview: grounded, idle, and not already mid-lean/turn.
+  // The real trigger (move.c:361-366) is stick UP + fire at a device tile;
+  // this sandbox has no device tiles, so it's a direct keypress instead.
+  if (k === "arrowdown" && !e.repeat) {
+    const onGround = body.yp >= world.floorYp;
+    if (onGround && body.velx === 0 && ground.name === "ground") {
+      terminalTurn = triggerTerminalTurn(terminalTurn);
+    }
+  }
 });
 window.addEventListener("keyup", (e) => {
   if (e.target instanceof HTMLInputElement) return;
@@ -75,7 +87,7 @@ let ground = initGroundState();
 
 guard(canvas, async () => {
   const font = await BitmapFont.load();
-  const [walkR, walkL, airR, airL, startR, startL, sairR, sairL] = await Promise.all([
+  const [walkR, walkL, airR, airL, startR, startL, sairR, sairL, turnBank] = await Promise.all([
     SpriteBank.load("girl-walk-r"),
     SpriteBank.load("girl-walk-l"),
     SpriteBank.load("girl-air-r"),
@@ -84,13 +96,24 @@ guard(canvas, async () => {
     SpriteBank.load("girl-start-l"),
     SpriteBank.load("girl-sair-r"),
     SpriteBank.load("girl-sair-l"),
+    SpriteBank.load("girl-turn"),
   ]);
 
   syncSliderUI();
 
   const tick = () => {
-    const joyx = keys.has("arrowleft") || keys.has("a") ? -1 : keys.has("arrowright") || keys.has("d") ? 1 : 0;
-    const thrustHeld = keys.has("arrowup") || keys.has("space");
+    terminalTurn = stepTerminalTurn(terminalTurn);
+    // SMTURNS/SMTURNE locks joyx = joyy = 0 (move.c:150,157) — the turn
+    // preview owns the stick while it plays.
+    const turning = terminalTurn.active;
+    const joyx = turning
+      ? 0
+      : keys.has("arrowleft") || keys.has("a")
+        ? -1
+        : keys.has("arrowright") || keys.has("d")
+          ? 1
+          : 0;
+    const thrustHeld = !turning && (keys.has("arrowup") || keys.has("space"));
     // specmv ground subset runs first and may override the stick (move.c order:
     // state machine before movement — start forces the run, stop locks controls).
     const onGround = body.yp >= world.floorYp;
@@ -115,22 +138,25 @@ guard(canvas, async () => {
 
     const flying = body.yp < world.floorYp;
     const gs = groundStateSprite(ground);
-    const bank = gs
-      ? gs.bank === "start"
-        ? gs.side === "r"
-          ? startR
-          : startL
-        : gs.side === "r"
-          ? sairR
-          : sairL
-      : flying
-        ? anim.facing === 1
-          ? airR
-          : airL
-        : anim.facing === 1
-          ? walkR
-          : walkL;
-    const frame = gs ? gs.frame : frameIndex(anim, body.velx);
+    let bank: SpriteBank;
+    let frame: number;
+    if (terminalTurn.active) {
+      bank = turnBank;
+      frame = terminalTurnFrame(terminalTurn);
+    } else if (gs) {
+      bank = gs.bank === "start" ? (gs.side === "r" ? startR : startL) : gs.side === "r" ? sairR : sairL;
+      frame = gs.frame;
+    } else if (body.velx === 0) {
+      // Idle: face the player. Ground -> girltr's front pose (Kurt's call,
+      // 2026-07-08 — canon's actual SMGROUND-idle was girlgsr[0], a side
+      // lean, not front-facing). Air -> girlasr[0] (set_bob's SMFLY-idle
+      // case, move.c:470) — faithful, not a deviation.
+      bank = flying ? sairR : turnBank;
+      frame = 0;
+    } else {
+      bank = flying ? (anim.facing === 1 ? airR : airL) : anim.facing === 1 ? walkR : walkL;
+      frame = frameIndex(anim, body.velx);
+    }
     const screenX = Math.round(body.xp / 32 - bank.frameW / 2);
     const screenY = Math.round(body.yp / 64 - bank.frameH);
     bank.draw(ctx, frame, screenX, screenY);

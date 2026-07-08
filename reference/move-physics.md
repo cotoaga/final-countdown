@@ -81,3 +81,18 @@ to taste; original gameplay rewards careful, intermittent thrust.
 - `girld[4]` — take/up/down poses (SMTAKEU/D, SMUP, SMDOWN — not death) → raw `d.` group
 - `girle[21]` — die AND appear (SMDIE, SMAPP; girlshp caps at 81 → 21 frames @ >>2) → raw `j` group
 Frame dims: girl ~32×42, bottom-align on the feet baseline.
+
+## Flight Lab sandbox decisions (designer-tool UX, NOT a canon physics change — 2026-07-08)
+- **Default idle now faces the player**, on Kurt's explicit direction. Canon's actual
+  SMGROUND-idle pose is `girlgsr[0]` (a side lean, move.c set_bob:480) and canon's
+  SMFLY-idle pose is `girlasr[0]` (move.c set_bob:470) — the flight lab now shows:
+  - Grounded + idle: `girl-turn` frame 0 (front-facing, a deliberate departure from
+    canon's side-lean idle).
+  - Airborne + idle: `girl-sair-r` frame 0 (`girlasr[0]`) — this one IS canon, not a
+    departure; the sandbox simply hadn't implemented the SMFLY-idle special case before.
+- **`girltr` is now wired into the sandbox** as a keypress preview (down arrow, while
+  grounded and idle) — see `src/designer/flight/terminal-turn.ts`. The real trigger is
+  stick UP + fire button facing an MCOMPUTER/MSWITCH tile (move.c:361-366); this sandbox
+  has no device tiles, so it's a direct keypress instead. Plays all 16 raw `g` frames
+  (not just the shipped 8) for a smoother preview at the same total duration.
+- These are UI/UX calls for the audition tool, not changes to `grav_sim`/`add_x`/`add_check_y`.

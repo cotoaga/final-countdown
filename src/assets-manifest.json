@@ -273,6 +273,16 @@
         "count": 8
       }
     },
+    "girl-turn": {
+      "file": "assets/girl-turn.png",
+      "w": 512,
+      "h": 42,
+      "frames": {
+        "w": 32,
+        "h": 42,
+        "count": 16
+      }
+    },
     "girl-walk-l": {
       "file": "assets/girl-walk-l.png",
       "w": 512,
