@@ -233,6 +233,16 @@
         "count": 4
       }
     },
+    "girl-die": {
+      "file": "assets/girl-die.png",
+      "w": 672,
+      "h": 40,
+      "frames": {
+        "w": 32,
+        "h": 40,
+        "count": 21
+      }
+    },
     "girl-sair-l": {
       "file": "assets/girl-sair-l.png",
       "w": 256,

@@ -51,6 +51,9 @@ const ASSETS = [
   // game halved this to girltr[8] (girlshp>>2); this sandbox keeps all 16
   // (girlshp>>1) for a smoother preview at the same total tick duration.
   { name: "girl-turn", frames: { dir: "girl", prefix: "g", count: 16 } },
+  // girle[21] — die AND appear (set_bob SMDIE/SMAPP, move.c; girlshp caps at
+  // 81 → 21 frames @ >>2). Raw group `j` per reference/move-physics.md.
+  { name: "girl-die", frames: { dir: "girl", prefix: "j", count: 21 } },
 ];
 
 // Extract the ILBM CMAP chunk (raw palette triplets, 8-bit as stored).

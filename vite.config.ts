@@ -17,6 +17,7 @@ export default defineConfig({
         flight: resolve(here, "flight.html"),
         lore: resolve(here, "lore.html"),
         sounds: resolve(here, "sounds.html"),
+        play: resolve(here, "play.html"),
       },
     },
   },
