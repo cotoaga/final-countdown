@@ -1,7 +1,7 @@
 // Deck 1 play page — Laira on the real Matrix0/Struct0 geometry (COT-252).
 // Logic lives in ./move.ts (pure); this file is input, loading, camera, and
 // pixels. Trainer switches arrive as URL flags (?noclip=1&fuelBurn=0, or
-// ?god=1 for all kills + fuel burn off); the panel UI is COT-253.
+// ?god=1 for all kills + fuel burn off); the panel is ./trainer.ts (COT-253).
 import { BitmapFont } from '../shared/font';
 import { startLoop } from '../shared/loop';
 import { guard } from '../shared/stage';
@@ -11,7 +11,8 @@ import { MATRIX_ROWS, matrixCell } from '../levels/decoder';
 import { frameIndex } from '../designer/flight/anim';
 import { groundStateSprite } from '../designer/flight/ground-states';
 import { SpriteBank } from '../designer/flight/sprites';
-import { DEFAULT_FLAGS, FUEL_MAX, type Laira, type PlayFlags, type PlayInput, newGame, tickLaira } from './move';
+import { FUEL_MAX, type Laira, type PlayInput, newGame, tickLaira } from './move';
+import { mountTrainer, parseQuery } from './trainer';
 
 // externals.c: WIDTH 304 visible (320 with the scroll margin), HEIGHT 192, IHEIGHT 22.
 const PLAY_H = 192;
@@ -27,19 +28,6 @@ const BOB_CENTER_DX = 24;
 const BOB_FEET_DY = 37;
 
 const LEVEL = 0;
-
-function flagsFromUrl(): PlayFlags {
-  const q = new URLSearchParams(location.search);
-  const f: PlayFlags = { ...DEFAULT_FLAGS };
-  if (q.get('god') === '1') {
-    f.fuelBurn = f.energyKills = f.trapKills = f.fallKills = false;
-  }
-  for (const k of Object.keys(f) as Array<keyof PlayFlags>) {
-    const v = q.get(k);
-    if (v === '0' || v === '1') f[k] = v === '1';
-  }
-  return f;
-}
 
 const canvas = document.getElementById('screen') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
@@ -61,7 +49,7 @@ function readInput(): PlayInput {
 }
 
 guard(canvas, async () => {
-  const flags = flagsFromUrl();
+  const { flags, probes, any } = parseQuery(location.search);
   const [font, deck, walkR, walkL, airR, airL, startR, startL, sairR, sairL, die] = await Promise.all([
     BitmapFont.load(),
     loadDeck(LEVEL),
@@ -82,8 +70,24 @@ guard(canvas, async () => {
   // JS probe surface (CLAUDE.md verification: probe constants on prod).
   Object.defineProperty(window, 'fc', { value: { get laira() { return laira; }, flags, deck }, configurable: true });
 
+  const trainer = mountTrainer(
+    {
+      flags,
+      matrix: deck.matrix,
+      canvas,
+      playH: PLAY_H,
+      anchor: { dx: BOB_CENTER_DX, dy: BOB_FEET_DY },
+      get: () => laira,
+      set: (l) => (laira = l),
+    },
+    probes,
+    any, // a repro link opens with its switches visible
+  );
+
   const tick = () => {
-    laira = tickLaira(laira, deck.matrix, readInput(), flags);
+    if (!trainer.gate()) return;
+    laira = tickLaira(laira, deck.matrix, trainer.input(readInput()), flags);
+    trainer.afterTick();
   };
 
   const render = () => {
@@ -127,6 +131,8 @@ guard(canvas, async () => {
       const sy = (laira.yp >> 6) + BOB_FEET_DY - bank.frameH;
       bank.draw(ctx, frame, sx, sy);
     }
+
+    trainer.draw(ctx);
 
     // Status bar (IHEIGHT 22). statr goes red while dying (main.c:306).
     const dying = laira.collision > 1;

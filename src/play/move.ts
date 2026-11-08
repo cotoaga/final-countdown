@@ -66,6 +66,11 @@ export interface PlayFlags {
   fallKills: boolean; // add_check_y: yp > 180*64 → collision = 2
   gravity: boolean; // grav_sim: vely += 1
   noclip: boolean; // MGROUND ignored by check_walls / check_ground
+  // Unwired until their sim lands (COT-253 trainer rows; no `if` in tickLaira yet).
+  mines: boolean; // move.c:379 MMINE pickup / laying — M2
+  foeKills: boolean; // foes.c contact — M5
+  liftTimers: boolean; // move.c tthrust == LIFTLIFE (externals.c:34) — M2
+  devices: number; // dev_on/dev_off slots 0–31, one bit each — M2
 }
 
 export const DEFAULT_FLAGS: PlayFlags = {
@@ -75,6 +80,10 @@ export const DEFAULT_FLAGS: PlayFlags = {
   fallKills: true,
   gravity: true,
   noclip: false,
+  mines: true,
+  foeKills: true,
+  liftTimers: true,
+  devices: 0,
 };
 
 export type Phase = 'appear' | 'alive' | 'die';

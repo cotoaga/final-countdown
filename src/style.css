@@ -262,3 +262,13 @@ canvas {
 .sounds-table tr.orphan td {
   color: var(--accent);
 }
+
+/* play trainer panel (COT-253) */
+.trainer { position: fixed; top: 8px; right: 8px; width: 300px; max-height: 96vh; overflow: auto; padding: 6px; font: 11px monospace; color: var(--ink-dim); background: #000; border: 2px solid var(--line); }
+.trainer[hidden] { display: none; }
+.trainer label { display: block; }
+.trainer .devs { display: flex; flex-wrap: wrap; gap: 0 4px; }
+.trainer .devs label { display: inline-block; }
+.trainer b { display: block; margin: 6px 0 2px; color: var(--accent); }
+.trainer button { margin: 2px 2px 0 0; font: inherit; }
+.trainer pre { margin: 4px 0 0; color: var(--ink); }
