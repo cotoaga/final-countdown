@@ -78,3 +78,18 @@ Get the coordinates wrong and the transporter still fires — the ending text te
 - German check questions (`chklin1/chklin2`: "WIEVIELE BEFEHLE SIND IN DER...") — manual-lookup copy protection inside the CLI.
 - `infected[level] |= 1<<no` (moebius) — tracked per-computer infection state, display use TBD.
 - TXT content files (Msg0..A, Txt*, Sys*, Dsk*) hold the actual fiction — extraction pending, they're on the ADFs.
+
+## Deck animation — copper colour cycling, not tile swapping (COT-254, 2026-11-08)
+
+**One ambient mechanism: the palette moves, the tiles don't.** `cycle_col()` (main.c:468-499) runs once per inner-loop tick (main.c:298) and pokes colour values straight into the playfield copper list.
+
+- **Which slots.** `colorptr = colptr = copperlist+1; colptr += 2*11` (start.c:1029-1030). Each copper MOVE is two words, so `colptr` is the value word of **COLOR11**, and `*(colptr+2k)` is COLOR(11+k).
+  - COLOR11–14 ← `cyccol[level][colcounter3][0..3]` (main.c:477-480).
+  - COLOR15 ← `*(colptr+8)` (main.c:489-491): a ramp. Levels 4–6 `<<4` (green), level 7 `>>1` (blue), else `(colcounter>>1)<<8` (red; deck 1 = level 0).
+- **Cadence.** `if (++count > 4)` (main.c:474): the four-colour rotation advances on every **5th** call = 10 Hz at 50 Hz, phase order 0,1,2,3 (`colcounter3 &= 3`, main.c:481-482). The first write lands on call 5, so for ~0.1 s after entry COLOR11–14 hold the Struct colours. The COLOR15 ramp moves **every** call: `colcounter` bounces 0↔31 (turns when `> 2*15`, and when `< 1`, main.c:485-488), colour = `colcounter>>1`, full period 62 ticks ≈ 1.24 s.
+- **Table.** `cyccol[8][4][4]`, main.c:47-79. Level 0 = `066 099 0cc 0ff` rotated one step per phase (cyan family). Quoted verbatim in `src/play/cycle.ts`; the table is `WORD` 12-bit RGB, no nibble tricks (`0x0cc` = R0 G12 B12).
+- **Who rides those slots.** Elements0 (deck 1): 97 of 283 tiles contain pixels on indices 11–15 — the gate glow (MFLASH 21+ / MGFLASH 63+ tiles, comp.c:73-80,152-159), wall lights, panel details — plus the MTRAP/MFUEL/MDISK1 item bobs. All of it animates by this one rotation. Decoded 2026-11-08.
+- **Gates are not frame-animated.** MFLASH/MGFLASH tile numbers appear only in comp.c (initial placement) and devices.c:305-328 (`remake_ground` on dev_on/dev_off). That is an **on/off device state swap** (M2 sim), not an animation loop. The shimmer on a live gate is the colour cycle.
+- **Mines.** `copy_obj` (trans.asm:41-92) blits a 16×16 masked bob per item field: `(cell&$3800)>>9 − 4` → `objmem[]`: MMINE 0, MTRAP 1, MFUEL 2, MDISK1 3 (objects 194 B each after the 720 B sintable in gfx/Stuff, start.c:462-477). MDISK2–4 would index past the 4-entry array; never drawn. Pixel-verified: **object 0 = `obj/mine.wait`** (MMINE: a laid mine counting down, `countdown = 300`, move.c:396-399; no cycled colours), **object 1 = `obj/mine.active`** (MTRAP: the armed trap `devices.c:212` converts it to after the countdown; its core is colours 11–15). There is no swap between them per frame: the "pulse" of an armed mine is the colour cycle. `wait → active` is the one-way MMINE→MTRAP conversion (M2).
+- **HUD, not ported.** `*(colptr2-2)` (main.c:493-498) pulses status-bar colour 30 between `statr/statg/statb`-masked ramps (colcounter2 5..15); the status bar has its own copper palette (start.c:1009-1010). Our HUD is drawn in canvas chrome, so this is not implemented.
+- **Lifts** move as gameplay (move.c tthrust/LIFTLIFE) — M2, not here.

@@ -5,13 +5,16 @@
 import { BitmapFont } from '../shared/font';
 import { startLoop } from '../shared/loop';
 import { guard } from '../shared/stage';
-import { TILE, buildTileSheet, loadDeck } from '../levels/load';
+import { TILE, loadDeck } from '../levels/load';
 import { TILE_INDEX_MASK } from '../levels/elements';
 import { MATRIX_ROWS, matrixCell } from '../levels/decoder';
 import { frameIndex } from '../designer/flight/anim';
 import { groundStateSprite } from '../designer/flight/ground-states';
 import { SpriteBank } from '../designer/flight/sprites';
 import { FUEL_MAX, type Laira, type PlayInput, newGame, tickLaira } from './move';
+import { createDeckPaint } from './animate';
+import { cycledPalette, initCycle, stepCycle } from './cycle';
+import { itemOf, loadItems } from './items';
 import { mountTrainer, parseQuery } from './trainer';
 
 // externals.c: WIDTH 304 visible (320 with the scroll margin), HEIGHT 192, IHEIGHT 22.
@@ -50,9 +53,10 @@ function readInput(): PlayInput {
 
 guard(canvas, async () => {
   const { flags, probes, any } = parseQuery(location.search);
-  const [font, deck, walkR, walkL, airR, airL, startR, startL, sairR, sairL, die] = await Promise.all([
+  const [font, deck, itemBank, walkR, walkL, airR, airL, startR, startL, sairR, sairL, die] = await Promise.all([
     BitmapFont.load(),
     loadDeck(LEVEL),
+    loadItems(),
     SpriteBank.load('girl-walk-r'),
     SpriteBank.load('girl-walk-l'),
     SpriteBank.load('girl-air-r'),
@@ -63,12 +67,13 @@ guard(canvas, async () => {
     SpriteBank.load('girl-sair-l'),
     SpriteBank.load('girl-die'),
   ]);
-  const sheet = buildTileSheet(deck.elements, deck.struct.colortable);
+  const paint = createDeckPaint(deck.elements, itemBank, deck.struct.colortable);
+  let cycle = initCycle();
   const tileCount = deck.elements.count;
 
   let laira: Laira = newGame(LEVEL);
   // JS probe surface (CLAUDE.md verification: probe constants on prod).
-  Object.defineProperty(window, 'fc', { value: { get laira() { return laira; }, flags, deck }, configurable: true });
+  Object.defineProperty(window, 'fc', { value: { get laira() { return laira; }, get cycle() { return cycle; }, flags, deck }, configurable: true });
 
   const trainer = mountTrainer(
     {
@@ -88,11 +93,14 @@ guard(canvas, async () => {
     if (!trainer.gate()) return;
     laira = tickLaira(laira, deck.matrix, trainer.input(readInput()), flags);
     trainer.afterTick();
+    cycle = stepCycle(cycle); // main.c:298 cycle_col(), once per inner-loop tick
   };
 
   const render = () => {
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    paint.recolour(cycledPalette(deck.struct.colortable, cycle));
 
     // Tiles: camera at xpos = spos>>5 px; cell 0 blits ground[0] like trans.asm.
     const xpos = laira.spos >> 5;
@@ -102,8 +110,11 @@ guard(canvas, async () => {
       for (let i = 0; i <= canvas.width / TILE; i++) {
         const c = c0 + i;
         if (c >= deck.matrix.cols) break;
-        const idx = matrixCell(deck.matrix, r, c) & TILE_INDEX_MASK;
-        if (idx < tileCount) ctx.drawImage(sheet, idx * TILE, 0, TILE, TILE, dx + i * TILE, r * TILE, TILE, TILE);
+        const cell = matrixCell(deck.matrix, r, c);
+        const idx = cell & TILE_INDEX_MASK;
+        if (idx < tileCount) ctx.drawImage(paint.sheet, idx * TILE, 0, TILE, TILE, dx + i * TILE, r * TILE, TILE, TILE);
+        const item = itemOf(cell); // trans.asm _copy_obj, over the tile
+        if (item >= 0) ctx.drawImage(paint.items, item * TILE, 0, TILE, TILE, dx + i * TILE, r * TILE, TILE, TILE);
       }
     }
 
