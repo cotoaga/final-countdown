@@ -93,3 +93,22 @@ Get the coordinates wrong and the transporter still fires — the ending text te
 - **Mines.** `copy_obj` (trans.asm:41-92) blits a 16×16 masked bob per item field: `(cell&$3800)>>9 − 4` → `objmem[]`: MMINE 0, MTRAP 1, MFUEL 2, MDISK1 3 (objects 194 B each after the 720 B sintable in gfx/Stuff, start.c:462-477). MDISK2–4 would index past the 4-entry array; never drawn. Pixel-verified: **object 0 = `obj/mine.wait`** (MMINE: a laid mine counting down, `countdown = 300`, move.c:396-399; no cycled colours), **object 1 = `obj/mine.active`** (MTRAP: the armed trap `devices.c:212` converts it to after the countdown; its core is colours 11–15). There is no swap between them per frame: the "pulse" of an armed mine is the colour cycle. `wait → active` is the one-way MMINE→MTRAP conversion (M2).
 - **HUD, not ported.** `*(colptr2-2)` (main.c:493-498) pulses status-bar colour 30 between `statr/statg/statb`-masked ramps (colcounter2 5..15); the status bar has its own copper palette (start.c:1009-1010). Our HUD is drawn in canvas chrome, so this is not implemented.
 - **Lifts** move as gameplay (move.c tthrust/LIFTLIFE) — M2, not here.
+
+## Controls — the fire button (for M2, 2026-11-08)
+
+**Fire only acts when Laira stands still on the ground.** The whole branch is `case SMGROUND: if (button && !velx)` (move.c:301). In the air, while walking, or without fire, none of this happens. The joystick direction picks the action, and the tile at or under her picks the target. Checked in this order:
+
+| Fire + | Condition (move.c) | Effect |
+|---|---|---|
+| **up** | on a lift pad (`MAGRAV..+2` under feet, `y+3`) **and** at one of 6 `exitpos[]` cells (302-310) | leave the deck: `leveladd = exitpos[var].a` |
+| **up** | on a lift pad, lift pad above (`y-1`) (312-332) | ride up: `SMLIFTUP`, `tthrust = LIFTLIFE`, sound 5 |
+| **down** | on a lift pad, lift pad below (`y+7`) (333-358) | ride down: `SMLIFTDN`, sound 5 |
+| **up** | `MCOMPUTER` or `MSWITCH` at `matrix[y][x+1]` (362-366) | turn to face it (`SMTURNS`) → `use_dev()` |
+| **up** | `MHIDE` at `matrix[y][x+1]` (367-370) | hide (`SMHIDEB`); stays hidden while up is held (124-131) |
+| **down** | item under feet (`matrix[y+3][x+1] & CHECKTHING`) (373-390) | pick up: MMINE → `++mines` (max 9), MFUEL → `fueladd += 200`, MDISK1 → `disk \|= 1<<level` |
+| **down** | on own mine during its countdown (`minex/miney`) (376-377) | defuse it (`countdown = 0`), then picked up as above |
+| **down** | carrying mines, no countdown running, empty floor tile in `FRGREL..LAGREL` (391-402) | lay a mine: `countdown = 300`, `set_obj(MMINE, …)` |
+
+- **Device use waits for the camera.** `SMTURNS` (move.c:157-163) turns Laira over 31 frames, then calls `use_dev()` only if `middle` is set. `middle = 1` only once she is stopped and the scroll has re-centred her (move.c:447-455). So: stop, press, wait. Pressing while she slides does nothing.
+- **Without fire,** down = crouch (`SMDOWN`, move.c:174-180, ~418), left/right = walk.
+- **Port status:** `src/play/` reads no fire button yet. All of the above is M2.
